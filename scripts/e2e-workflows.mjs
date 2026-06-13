@@ -102,12 +102,20 @@ await check("microphone stays available without per-note click", async () => {
 });
 
 await check("settings and debug simulated scoring work", async () => {
+  await page.getByRole("button", { name: "Practice" }).click();
+  const promptText = await page.locator(".prompt-panel h2").innerText();
+  const wrongNote = getWrongNoteForPrompt(promptText);
+
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await assertVisible("Debug simulated input");
   await page.locator('label:has-text("Session structure") select').selectOption("three_5");
-  await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: "C", exact: true }).click();
+  await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: wrongNote, exact: true }).click();
   await page.getByRole("button", { name: "Score debug note" }).click();
   await assertVisible(/pass|wrong_note|too_slow/);
+
+  await page.getByRole("button", { name: "Practice" }).click();
+  await assertVisible("Locked");
+  await assertVisible("Tiger Mode is locked on this note until you get it right.");
 });
 
 await check("ending a session creates a trend entry", async () => {
@@ -153,6 +161,13 @@ if (failures.length > 0) {
 
 async function assertVisible(textOrRegex) {
   await page.getByText(textOrRegex).first().waitFor({ timeout: 5000 });
+}
+
+function getWrongNoteForPrompt(promptText) {
+  const noteNames = ["C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"];
+  const match = promptText.match(/Play ([A-G](?:#\/[A-G]b)?)/);
+  assert(match, `Could not parse prompt note from: ${promptText}`);
+  return noteNames.find((noteName) => noteName !== match[1]) ?? "C";
 }
 
 async function launchApp(options) {

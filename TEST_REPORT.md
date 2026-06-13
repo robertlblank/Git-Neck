@@ -16,10 +16,10 @@ Result: passed.
 
 ```text
 Test Files  7 passed (7)
-Tests       31 passed (31)
+Tests       33 passed (33)
 ```
 
-Coverage includes notes, fretboard, audio pitch helpers, conservative tuning offset, sessions, scoring, mastery/workout, and persistence.
+Coverage includes notes, fretboard, audio pitch helpers, conservative tuning offset, sessions, scoring, mastery/workout, persistence, and Tiger Mode default migration.
 
 ```bash
 npm run typecheck
@@ -45,6 +45,7 @@ Covered:
 - keyboard shortcuts
 - microphone start invocation with fake media
 - Settings / Debug simulated scoring fallback
+- Tiger Mode wrong-note lock regression: intentional debug miss returns to Practice as `Locked`
 - End session creates a trend entry
 - Progress recent attempts
 - settings persistence across Electron relaunch
@@ -78,6 +79,33 @@ Result: both passed.
 - Practice score/result widgets were removed from the active playing view; E2E asserts Practice does not show `Current streak` or the result panel.
 - Background auto-advance was added so correct answers move on and wrong/slow answers repeat without requiring a click.
 - Continuous microphone flow was added so Practice starts/restarts listening between prompts without per-note click-through; E2E asserts this behavior.
+- Tiger Mode was made default-on and real: wrong/slow answers lock the prompt until a pass, the Practice `Next` control becomes `Locked`, and old v1 persisted defaults migrate to strict repeat.
+
+## Latest Verification After Tiger Mode Lock
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 7 files / 33 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test. First sandboxed launch failed with `Process failed to launch!`; rerun outside the sandbox passed.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was already occupied. Dev processes were stopped after verification.
 
 ## Current Risk
 
@@ -87,7 +115,7 @@ Automated checks pass. The remaining risk is real-world pitch detection quality 
 
 Known:
 
-- Unit tests pass: 31 tests.
+- Unit tests pass: 33 tests.
 - Built Electron E2E workflow passes with fake media.
 - Preload path is fixed for built Electron.
 - Project has been renamed to Git Neck in package metadata, UI, docs, IPC names, storage names, and tests.

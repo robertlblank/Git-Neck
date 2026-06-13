@@ -33,6 +33,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
+- Tiger Mode is default-on and enforces the same prompt after a miss or too-slow answer until the user gets it right.
 - Pause/resume excludes break time from response scoring and active session time.
 - Session structures support `1 x 15`, `3 x 5`, and `5 x 3`.
 - Completed session trends show session accuracy, average response time, attempt count, and active duration.
@@ -46,6 +47,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Stop Listening blank-screen bug is fixed and covered by E2E regression.
 - Practice no longer shows the score/result panel while playing; covered by E2E regression.
 - Continuous microphone flow is covered by E2E regression.
+- Old v1 persisted state migrates Tiger Mode to on, so prior local defaults do not silently keep skip-friendly behavior.
 
 ## Known Facts
 
@@ -55,6 +57,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Debug simulated input is not the primary practice flow.
 - Normal microphone audio can validate pitch class, but cannot prove the physical fret or string.
 - Session tuning offset is intentionally conservative: it learns slowly, ignores large observations, clamps the offset, and resets each session.
+- App state schema is now version 2 to migrate old Tiger Mode defaults.
 
 ## What Is Partial
 

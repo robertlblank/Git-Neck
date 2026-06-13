@@ -17,6 +17,7 @@
 - No verbal confirmation gate.
 - Primary input is microphone listening from this computer.
 - The app scores automatically after detecting a stable pitch class.
+- Tiger Mode is default-on: wrong notes and too-slow correct notes repeat the same prompt until a clean pass.
 - Slight tuning drift is handled by a conservative session-relative offset learned over multiple accepted notes.
 - Paused time does not count against response time or active session time.
 - Practice can be structured as `1 x 15`, `3 x 5`, or `5 x 3`.

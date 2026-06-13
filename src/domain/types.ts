@@ -85,7 +85,7 @@ export type PracticeSession = {
 };
 
 export type AppState = {
-  version: 1;
+  version: 2;
   settings: Settings;
   mastery: MasteryState;
   attempts: Attempt[];

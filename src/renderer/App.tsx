@@ -53,6 +53,7 @@ export function App(): ReactElement {
   const [feedback, setFeedback] = useState("Mic starts automatically. Play the note.");
   const [showFretboard, setShowFretboard] = useState(false);
   const [lastAttempt, setLastAttempt] = useState<Attempt | null>(null);
+  const [missLockedPrompt, setMissLockedPrompt] = useState<DrillPrompt | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [paused, setPaused] = useState(false);
   const [statePath, setStatePath] = useState<string | null>(null);
@@ -158,6 +159,19 @@ export function App(): ReactElement {
       setSessionPausedMs((value) => value + Date.now() - sessionPauseStartedAtMs);
       setSessionPauseStartedAtMs(null);
     }
+
+    if (appState.settings.tigerMode && missLockedPrompt) {
+      setPrompt({ ...missLockedPrompt, id: `prompt-${Date.now()}`, createdAtMs: Date.now() });
+      setDebugPitchClass(null);
+      setDetectedPitch(null);
+      setLastAttempt(null);
+      setElapsedMs(0);
+      setFeedback("Tiger Mode: same note until you hit it.");
+      setShowFretboard(appState.settings.revealFretboardDefault);
+      setPaused(false);
+      return;
+    }
+
     const next = selectNextPrompt({
       mastery: appState.mastery,
       currentLevel: appState.currentLevel,
@@ -177,6 +191,8 @@ export function App(): ReactElement {
     appState.currentLevel,
     appState.mastery,
     appState.settings.revealFretboardDefault,
+    appState.settings.tigerMode,
+    missLockedPrompt,
     mode,
     sessionPauseStartedAtMs,
     stopListening
@@ -220,6 +236,7 @@ export function App(): ReactElement {
     setAppState(nextState);
     setSessionAttemptIds((attemptIds) => [...attemptIds, outcome.attempt.id]);
     setLastAttempt(outcome.attempt);
+    setMissLockedPrompt(outcome.attempt.result === "pass" ? null : prompt);
     setElapsedMs(outcome.attempt.responseMs);
     setFeedback(getCoachingFeedback(outcome.attempt, prompt));
     setShowFretboard(true);
@@ -268,6 +285,7 @@ export function App(): ReactElement {
     setSessionPauseStartedAtMs(null);
     setSessionActiveMs(0);
     setSessionAttemptIds([]);
+    setMissLockedPrompt(null);
     setSessionTuningOffsetCents(0);
     setSessionTuningSamples(0);
     setPaused(false);
@@ -512,6 +530,7 @@ export function App(): ReactElement {
           sessionAttemptCount={sessionAttemptIds.length}
           sessionTuningOffsetCents={sessionTuningOffsetCents}
           sessionTuningSamples={sessionTuningSamples}
+          tigerLocked={appState.settings.tigerMode && missLockedPrompt !== null}
           showFretboard={showFretboard}
         />
       )}
@@ -572,6 +591,7 @@ function PracticeArea(props: {
   sessionTuningOffsetCents: number;
   sessionTuningSamples: number;
   showFretboard: boolean;
+  tigerLocked: boolean;
 }): ReactElement {
   const positions = useMemo(
     () => generateFretboard(props.appState.settings.minFret, props.appState.settings.maxFret),
@@ -637,7 +657,9 @@ function PracticeArea(props: {
         </div>
         <div className="actions">
           <button onClick={props.onRepeat}>Repeat</button>
-          <button onClick={props.onNext}>Next</button>
+          <button disabled={props.tigerLocked} onClick={props.onNext}>
+            {props.tigerLocked ? "Locked" : "Next"}
+          </button>
           <button onClick={props.onEndSession}>End session</button>
         </div>
       </div>
@@ -645,7 +667,13 @@ function PracticeArea(props: {
       <aside className="coach-panel">
         <p className="eyebrow">Coach</p>
         <h3>{props.feedback}</h3>
-        <p>{props.lastAttempt ? "Logged in the background." : "Mic stays on between prompts. Scoring stays out of the way."}</p>
+        <p>
+          {props.tigerLocked
+            ? "Tiger Mode is locked on this note until you get it right."
+            : props.lastAttempt
+              ? "Logged in the background."
+              : "Mic stays on between prompts. Scoring stays out of the way."}
+        </p>
         {props.showFretboard && <Fretboard positions={positions} />}
       </aside>
     </section>

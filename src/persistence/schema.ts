@@ -5,7 +5,7 @@ export const DEFAULT_SETTINGS: Settings = {
   workoutLengthMinutes: 15,
   minFret: 0,
   maxFret: 12,
-  tigerMode: false,
+  tigerMode: true,
   revealFretboardDefault: false,
   activeInputMode: "microphone",
   sessionStructure: "one_15",
@@ -14,7 +14,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export function createDefaultAppState(): AppState {
   return {
-    version: 1,
+    version: 2,
     settings: { ...DEFAULT_SETTINGS },
     mastery: createInitialMasteryState(),
     attempts: [],
@@ -30,12 +30,20 @@ export function normalizeAppState(value: unknown): AppState {
 
   const partial = value as Partial<AppState>;
   const defaults = createDefaultAppState();
+  const versionedPartial = partial as { version?: number };
+  const incomingVersion = typeof versionedPartial.version === "number" ? versionedPartial.version : 1;
+  const incomingSettings: Partial<Settings> = partial.settings ?? {};
+  const tigerMode =
+    incomingVersion === 1 && incomingSettings.tigerMode === false
+      ? true
+      : incomingSettings.tigerMode ?? defaults.settings.tigerMode;
 
   return {
-    version: 1,
+    version: 2,
     settings: {
       ...defaults.settings,
-      ...(partial.settings ?? {}),
+      ...incomingSettings,
+      tigerMode,
       activeInputMode: "microphone"
     },
     mastery: partial.mastery ?? defaults.mastery,

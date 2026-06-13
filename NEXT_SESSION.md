@@ -37,14 +37,15 @@ What is working:
 - The app requests microphone input, estimates one monophonic pitch, applies conservative session-relative tuning tolerance, scores automatically, updates mastery, and shows feedback.
 - Practice hides detailed scoring widgets; scoring happens in the background and trends live in Progress.
 - Correct answers auto-advance; wrong/slow answers repeat the prompt.
+- Tiger Mode is default-on and locks missed/too-slow prompts until a clean pass; old v1 local state migrates to this default.
 - The microphone starts/restarts automatically between prompts; per-note clicking is not part of the intended flow.
 - Pause/resume excludes break time from response scoring and active session time.
 - Practice can be structured as 1 x 15, 3 x 5, or 5 x 3.
 - Completed session trends are shown in Progress.
 - Simulated input exists only in Settings / Debug.
 - Verbal confirmation and talking to the app are no longer part of the product.
-- Tests currently pass: 31 unit tests plus the Electron E2E workflow.
-- Post-rename verification from `/Users/robertblank/Guitar Gear Codex/git-neck` passed for `npm test` and `npm run test:e2e`.
+- Tests currently pass: 33 unit tests plus the Electron E2E workflow.
+- Latest verification from `/Users/robertblank/Guitar Gear Codex/git-neck` passed for `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e`, and `npm run dev`.
 
 What not to touch:
 - Do not reintroduce verbal confirmation.
@@ -54,6 +55,7 @@ What not to touch:
 - Do not claim normal microphone audio can prove the physical fret/string.
 - Keep tuning tolerance conservative; do not add a big calibration workflow unless Robert asks.
 - Do not reintroduce per-note click-through.
+- Do not let wrong/slow answers silently advance in default practice.
 
 Exact next task:
 Do a real microphone verification pass:

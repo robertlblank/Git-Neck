@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultAppState } from "../persistence/schema";
+import { createDefaultAppState, normalizeAppState } from "../persistence/schema";
 import { InMemoryGitNeckRepository } from "../persistence/repository";
 
 describe("persistence repository", () => {
@@ -50,5 +50,31 @@ describe("persistence repository", () => {
 
     const loaded = await repository.load();
     expect(loaded.attempts).toHaveLength(1);
+  });
+
+  it("migrates old tiger mode defaults to strict repeat", () => {
+    const oldState = {
+      ...createDefaultAppState(),
+      version: 1,
+      settings: {
+        ...createDefaultAppState().settings,
+        tigerMode: false
+      }
+    };
+
+    const migrated = normalizeAppState(oldState);
+
+    expect(migrated.version).toBe(2);
+    expect(migrated.settings.tigerMode).toBe(true);
+  });
+
+  it("keeps explicit tiger mode choices after migration", () => {
+    const state = createDefaultAppState();
+    state.settings.tigerMode = false;
+
+    const loaded = normalizeAppState(state);
+
+    expect(loaded.version).toBe(2);
+    expect(loaded.settings.tigerMode).toBe(false);
   });
 });

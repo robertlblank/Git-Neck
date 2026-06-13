@@ -18,6 +18,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Continuous microphone flow during Practice
 - Background scoring that stays out of the way during Practice
 - Auto-advance after a scored note
+- Tiger Mode default-on: misses and too-slow hits repeat the same prompt until clean
 - Clean streak, slow-answer, and repeated-mistake handling
 - Pause/resume so breaks do not count against response time
 - Session structures: `1 x 15`, `3 x 5`, or `5 x 3`
@@ -66,7 +67,7 @@ npm run test:e2e
 2. Grant microphone permission if macOS asks.
 3. Play one clear guitar note into this computer's input.
 4. The app detects a stable pitch class, applies the current session's conservative tuning offset, and scores automatically.
-5. Git Neck briefly shows coaching feedback, advances automatically, and resumes listening for the next prompt.
+5. Git Neck briefly shows coaching feedback, advances automatically after a pass, or repeats the same prompt after a miss/slow hit.
 6. Use `Pause` when you stop for a text or interruption.
 7. Use `Turn mic on`, `Repeat`, `Next`, or `End session` as manual overrides.
 
@@ -86,6 +87,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - `R` = repeat prompt
 - `F` = reveal/hide fretboard
 - `Enter` = next if feedback is showing, otherwise start listening
+- In Tiger Mode, `Enter`/`Next` cannot skip a missed prompt.
 - `Esc` = pause/resume timer and stop listening
 
 ## Known Limitations
@@ -96,6 +98,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
 - Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
 - Practice should not require clicking before every note; the mic restarts automatically between prompts.
+- Tiger Mode is default-on; turn it off in Settings only if you intentionally want softer practice behavior.
 - Session tuning offset is conservative, learned over multiple accepted notes, and reset per session.
 - Simulated input exists only under Settings / Debug.
 - Persistence is a single local JSON state file.
@@ -104,7 +107,7 @@ Paused time does not count toward the prompt response timer or active session ti
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 31 tests.
+- `npm test`: passed, 33 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
