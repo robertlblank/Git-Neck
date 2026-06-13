@@ -15,6 +15,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Simple monophonic pitch-class detection
 - Conservative session-relative tuning tolerance
 - Deterministic scoring and canned coaching
+- Continuous microphone flow during Practice
 - Background scoring that stays out of the way during Practice
 - Auto-advance after a scored note
 - Clean streak, slow-answer, and repeated-mistake handling
@@ -62,12 +63,12 @@ npm run test:e2e
 ## Practice Flow
 
 1. Read the prompt.
-2. Click `Start listening` or press `Space`.
+2. Grant microphone permission if macOS asks.
 3. Play one clear guitar note into this computer's input.
 4. The app detects a stable pitch class, applies the current session's conservative tuning offset, and scores automatically.
-5. Git Neck briefly shows coaching feedback, then advances automatically.
+5. Git Neck briefly shows coaching feedback, advances automatically, and resumes listening for the next prompt.
 6. Use `Pause` when you stop for a text or interruption.
-7. Use `Repeat`, `Next`, or `End session` as manual overrides.
+7. Use `Turn mic on`, `Repeat`, `Next`, or `End session` as manual overrides.
 
 ## Session Options
 
@@ -81,7 +82,7 @@ Paused time does not count toward the prompt response timer or active session ti
 
 ## Keyboard Shortcuts
 
-- `Space` = start/stop listening
+- `Space` = turn mic on/off
 - `R` = repeat prompt
 - `F` = reveal/hide fretboard
 - `Enter` = next if feedback is showing, otherwise start listening
@@ -94,6 +95,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - Normal microphone input validates pitch, not the physical fret or string.
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
 - Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
+- Practice should not require clicking before every note; the mic restarts automatically between prompts.
 - Session tuning offset is conservative, learned over multiple accepted notes, and reset per session.
 - Simulated input exists only under Settings / Debug.
 - Persistence is a single local JSON state file.

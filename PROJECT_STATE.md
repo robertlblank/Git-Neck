@@ -30,6 +30,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 - Electron + React + TypeScript app scaffold.
 - Practice area with prompt, start/stop listening, microphone status, detected note display, scoring, feedback, streak, timer, repeat, next, end session, and fretboard reveal.
+- Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
 - Pause/resume excludes break time from response scoring and active session time.
@@ -44,6 +45,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Project folder is `/Users/robertblank/Guitar Gear Codex/git-neck`.
 - Stop Listening blank-screen bug is fixed and covered by E2E regression.
 - Practice no longer shows the score/result panel while playing; covered by E2E regression.
+- Continuous microphone flow is covered by E2E regression.
 
 ## Known Facts
 

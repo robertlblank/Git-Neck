@@ -50,12 +50,13 @@ export function App(): ReactElement {
     })
   );
   const [debugPitchClass, setDebugPitchClass] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState("Start listening, then play the note.");
+  const [feedback, setFeedback] = useState("Mic starts automatically. Play the note.");
   const [showFretboard, setShowFretboard] = useState(false);
   const [lastAttempt, setLastAttempt] = useState<Attempt | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [paused, setPaused] = useState(false);
   const [statePath, setStatePath] = useState<string | null>(null);
+  const [micEnabled, setMicEnabled] = useState(true);
   const [listening, setListening] = useState(false);
   const [audioStatus, setAudioStatus] = useState("Microphone idle.");
   const [detectedPitch, setDetectedPitch] = useState<PitchDetection | null>(null);
@@ -70,6 +71,7 @@ export function App(): ReactElement {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
+  const scoringStartedAtMsRef = useRef(Date.now());
 
   useEffect(() => {
     let cancelled = false;
@@ -168,7 +170,7 @@ export function App(): ReactElement {
     setDetectedPitch(null);
     setLastAttempt(null);
     setElapsedMs(0);
-    setFeedback("Start listening, then play the note.");
+    setFeedback("Mic starts automatically. Play the note.");
     setShowFretboard(appState.settings.revealFretboardDefault);
     setPaused(false);
   }, [
@@ -204,7 +206,7 @@ export function App(): ReactElement {
       submittedPitchClass: pitchClass,
       submittedDisplayName: getDisplayName(pitchClass),
       source,
-      responseMs: nowMs - prompt.createdAtMs,
+      responseMs: nowMs - scoringStartedAtMsRef.current,
       previousAttempts: appState.attempts,
       nowMs
     });
@@ -270,6 +272,7 @@ export function App(): ReactElement {
     setSessionTuningSamples(0);
     setPaused(false);
     setFeedback("Session saved. Start the next one clean.");
+    setMicEnabled(false);
   }, [
     appState,
     mode,
@@ -282,8 +285,15 @@ export function App(): ReactElement {
 
   const startListening = useCallback(async () => {
     try {
+      if (listening || paused || lastAttempt) {
+        return;
+      }
+
+      setMicEnabled(true);
+
       if (!navigator.mediaDevices?.getUserMedia) {
         setAudioStatus("Microphone input is not available in this environment.");
+        setMicEnabled(false);
         return;
       }
 
@@ -303,6 +313,8 @@ export function App(): ReactElement {
       streamRef.current = stream;
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
+      scoringStartedAtMsRef.current = Date.now();
+      setPrompt((currentPrompt) => ({ ...currentPrompt, createdAtMs: scoringStartedAtMsRef.current }));
       setListening(true);
       setAudioStatus("Listening. Play one clear note.");
 
@@ -367,10 +379,13 @@ export function App(): ReactElement {
       tick();
     } catch (error) {
       setAudioStatus(error instanceof Error ? error.message : "Microphone permission failed.");
+      setMicEnabled(false);
       setListening(false);
     }
   }, [
     lastAttempt,
+    listening,
+    paused,
     prompt.targetPitchClass,
     scoreDetectedPitch,
     sessionTuningOffsetCents,
@@ -381,6 +396,22 @@ export function App(): ReactElement {
   useEffect(() => stopListening, [stopListening]);
 
   useEffect(() => {
+    if (area !== "practice" || !loaded || !micEnabled || paused || lastAttempt || listening) {
+      return;
+    }
+
+    void startListening();
+  }, [area, lastAttempt, listening, loaded, micEnabled, paused, startListening]);
+
+  useEffect(() => {
+    if (area === "practice" || !listening) {
+      return;
+    }
+
+    stopListening();
+  }, [area, listening, stopListening]);
+
+  useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
       if (event.target instanceof HTMLInputElement) {
         return;
@@ -389,8 +420,10 @@ export function App(): ReactElement {
       if (event.code === "Space") {
         event.preventDefault();
         if (listening) {
+          setMicEnabled(false);
           stopListening();
         } else {
+          setMicEnabled(true);
           void startListening();
         }
       } else if (event.key.toLowerCase() === "r") {
@@ -464,11 +497,15 @@ export function App(): ReactElement {
           onPauseToggle={togglePause}
           onRepeat={repeatPrompt}
           onStartListening={() => void startListening()}
-          onStopListening={stopListening}
+          onStopListening={() => {
+            setMicEnabled(false);
+            stopListening();
+          }}
           onToggleFretboard={() => setShowFretboard((value) => !value)}
           audioStatus={audioStatus}
           detectedPitch={detectedPitch}
           listening={listening}
+          micEnabled={micEnabled}
           paused={paused}
           prompt={prompt}
           sessionActiveMs={sessionActiveMs}
@@ -518,6 +555,7 @@ function PracticeArea(props: {
   feedback: string;
   lastAttempt: Attempt | null;
   listening: boolean;
+  micEnabled: boolean;
   mode: DrillMode;
   onModeChange: (mode: DrillMode) => void;
   onEndSession: () => void;
@@ -587,7 +625,7 @@ function PracticeArea(props: {
             className={props.listening ? "confirmed" : "primary"}
             onClick={props.listening ? () => props.onStopListening() : props.onStartListening}
           >
-            {props.listening ? "Stop listening" : "Start listening"}
+            {props.listening ? "Mic on" : props.micEnabled ? "Mic starting" : "Turn mic on"}
           </button>
           <button onClick={props.onToggleFretboard}>{props.showFretboard ? "Hide fretboard" : "Reveal fretboard"}</button>
           <button onClick={props.onPauseToggle}>{props.paused ? "Resume" : "Pause"}</button>
@@ -607,7 +645,7 @@ function PracticeArea(props: {
       <aside className="coach-panel">
         <p className="eyebrow">Coach</p>
         <h3>{props.feedback}</h3>
-        <p>{props.lastAttempt ? "Logged in the background." : "Scoring stays out of the way while you play."}</p>
+        <p>{props.lastAttempt ? "Logged in the background." : "Mic stays on between prompts. Scoring stays out of the way."}</p>
         {props.showFretboard && <Fretboard positions={positions} />}
       </aside>
     </section>

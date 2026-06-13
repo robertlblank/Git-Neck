@@ -44,13 +44,14 @@ await check("app shell loads", async () => {
 });
 
 await check("practice is listen-first", async () => {
-  await assertVisible("Start listening");
+  await assertVisible(/Mic on|Mic starting|Turn mic on/);
   const text = await visibleText();
   assert(!text.includes("I said it out loud"));
   assert(!text.includes("Submit simulated note"));
+  assert(!text.includes("Start listening"));
   assert(!text.includes("Current streak"));
   assert(!text.includes("Result\n"));
-  assert(text.includes("Scoring stays out of the way while you play."));
+  assert(text.includes("Scoring stays out of the way") || text.includes("Logged in the background."));
 });
 
 await check("practice prompt and mode controls exist", async () => {
@@ -86,16 +87,16 @@ await check("keyboard shortcuts for reveal and repeat work", async () => {
   await assertVisible("Same prompt.");
 });
 
-await check("microphone start can be invoked", async () => {
-  await page.getByRole("button", { name: "Start listening" }).click();
+await check("microphone stays available without per-note click", async () => {
   await page.waitForTimeout(1000);
   const text = await visibleText();
   assert(/git neck/i.test(text));
   assert(text.length > 100);
-  const stop = page.getByRole("button", { name: "Stop listening" });
+  const stop = page.getByRole("button", { name: "Mic on" });
   if (await stop.isVisible().catch(() => false)) {
     await stop.click();
     await assertVisible("Microphone idle.");
+    await assertVisible("Turn mic on");
     assert(/git neck/i.test(await visibleText()));
   }
 });

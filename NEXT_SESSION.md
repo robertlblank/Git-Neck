@@ -37,6 +37,7 @@ What is working:
 - The app requests microphone input, estimates one monophonic pitch, applies conservative session-relative tuning tolerance, scores automatically, updates mastery, and shows feedback.
 - Practice hides detailed scoring widgets; scoring happens in the background and trends live in Progress.
 - Correct answers auto-advance; wrong/slow answers repeat the prompt.
+- The microphone starts/restarts automatically between prompts; per-note clicking is not part of the intended flow.
 - Pause/resume excludes break time from response scoring and active session time.
 - Practice can be structured as 1 x 15, 3 x 5, or 5 x 3.
 - Completed session trends are shown in Progress.
@@ -52,6 +53,7 @@ What not to touch:
 - Do not claim guided-string prompts detect the actual played string.
 - Do not claim normal microphone audio can prove the physical fret/string.
 - Keep tuning tolerance conservative; do not add a big calibration workflow unless Robert asks.
+- Do not reintroduce per-note click-through.
 
 Exact next task:
 Do a real microphone verification pass:
