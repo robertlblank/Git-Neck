@@ -104,6 +104,7 @@ await check("microphone stays available without per-note click", async () => {
 await check("settings and debug simulated scoring work", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
   const promptText = await page.locator(".prompt-panel h2").innerText();
+  const targetNote = getTargetNoteForPrompt(promptText);
   const wrongNote = getWrongNoteForPrompt(promptText);
 
   await page.getByRole("button", { name: "Settings / Debug" }).click();
@@ -116,6 +117,14 @@ await check("settings and debug simulated scoring work", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
   await assertVisible("Locked");
   await assertVisible("Tiger Mode is locked on this note until you get it right.");
+
+  await page.getByRole("button", { name: "Settings / Debug" }).click();
+  await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: targetNote, exact: true }).click();
+  await page.getByRole("button", { name: "Score debug note" }).click();
+  await assertVisible("pass");
+
+  await page.getByRole("button", { name: "Practice" }).click();
+  await page.getByRole("button", { name: "Next" }).waitFor({ timeout: 5000 });
 });
 
 await check("ending a session creates a trend entry", async () => {
@@ -165,9 +174,14 @@ async function assertVisible(textOrRegex) {
 
 function getWrongNoteForPrompt(promptText) {
   const noteNames = ["C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"];
+  const targetNote = getTargetNoteForPrompt(promptText);
+  return noteNames.find((noteName) => noteName !== targetNote) ?? "C";
+}
+
+function getTargetNoteForPrompt(promptText) {
   const match = promptText.match(/Play ([A-G](?:#\/[A-G]b)?)/);
   assert(match, `Could not parse prompt note from: ${promptText}`);
-  return noteNames.find((noteName) => noteName !== match[1]) ?? "C";
+  return match[1];
 }
 
 async function launchApp(options) {

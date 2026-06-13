@@ -45,7 +45,7 @@ Covered:
 - keyboard shortcuts
 - microphone start invocation with fake media
 - Settings / Debug simulated scoring fallback
-- Tiger Mode wrong-note lock regression: intentional debug miss returns to Practice as `Locked`
+- Tiger Mode lock/unlock regression: intentional debug miss returns to Practice as `Locked`; correct retry clears back to `Next`
 - End session creates a trend entry
 - Progress recent attempts
 - settings persistence across Electron relaunch
@@ -79,7 +79,7 @@ Result: both passed.
 - Practice score/result widgets were removed from the active playing view; E2E asserts Practice does not show `Current streak` or the result panel.
 - Background auto-advance was added so correct answers move on and wrong/slow answers repeat without requiring a click.
 - Continuous microphone flow was added so Practice starts/restarts listening between prompts without per-note click-through; E2E asserts this behavior.
-- Tiger Mode was made default-on and real: wrong/slow answers lock the prompt until a pass, the Practice `Next` control becomes `Locked`, and old v1 persisted defaults migrate to strict repeat.
+- Tiger Mode was made default-on and real: wrong/slow answers lock the prompt until a pass, the Practice `Next` control becomes `Locked`, old v1 persisted defaults migrate to strict repeat, and E2E now verifies lock/unlock behavior.
 
 ## Latest Verification After Tiger Mode Lock
 
