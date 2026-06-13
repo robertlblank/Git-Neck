@@ -35,6 +35,8 @@ What is working:
 - The app is audio-first and branded Git Neck.
 - Practice uses Start listening as the primary action.
 - The app requests microphone input, estimates one monophonic pitch, applies conservative session-relative tuning tolerance, scores automatically, updates mastery, and shows feedback.
+- Practice hides detailed scoring widgets; scoring happens in the background and trends live in Progress.
+- Correct answers auto-advance; wrong/slow answers repeat the prompt.
 - Pause/resume excludes break time from response scoring and active session time.
 - Practice can be structured as 1 x 15, 3 x 5, or 5 x 3.
 - Completed session trends are shown in Progress.

@@ -412,6 +412,22 @@ export function App(): ReactElement {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lastAttempt, listening, nextPrompt, repeatPrompt, startListening, stopListening, togglePause]);
 
+  useEffect(() => {
+    if (area !== "practice" || !lastAttempt || paused) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (lastAttempt.result === "pass") {
+        nextPrompt();
+      } else {
+        repeatPrompt();
+      }
+    }, lastAttempt.result === "pass" ? 900 : 1300);
+
+    return () => clearTimeout(timer);
+  }, [area, lastAttempt, nextPrompt, paused, repeatPrompt]);
+
   const level = getCurrentLevel(appState.currentLevel);
   const recentAttempts = appState.attempts.slice(-8).reverse();
 
@@ -588,23 +604,10 @@ function PracticeArea(props: {
         </div>
       </div>
 
-      <aside className="status-panel">
-        <p className="eyebrow">Feedback</p>
+      <aside className="coach-panel">
+        <p className="eyebrow">Coach</p>
         <h3>{props.feedback}</h3>
-        <dl>
-          <div>
-            <dt>Current streak</dt>
-            <dd>{props.lastAttempt?.cleanStreakCount ?? "-"}</dd>
-          </div>
-          <div>
-            <dt>Result</dt>
-            <dd>{props.lastAttempt?.result ?? "waiting"}</dd>
-          </div>
-          <div>
-            <dt>Input</dt>
-            <dd>{props.lastAttempt?.source ?? "microphone"}</dd>
-          </div>
-        </dl>
+        <p>{props.lastAttempt ? "Logged in the background." : "Scoring stays out of the way while you play."}</p>
         {props.showFretboard && <Fretboard positions={positions} />}
       </aside>
     </section>

@@ -48,6 +48,9 @@ await check("practice is listen-first", async () => {
   const text = await visibleText();
   assert(!text.includes("I said it out loud"));
   assert(!text.includes("Submit simulated note"));
+  assert(!text.includes("Current streak"));
+  assert(!text.includes("Result\n"));
+  assert(text.includes("Scoring stays out of the way while you play."));
 });
 
 await check("practice prompt and mode controls exist", async () => {

@@ -105,7 +105,7 @@ button.small {
 }
 
 .prompt-panel,
-.status-panel,
+.coach-panel,
 .metric-panel {
   background: #fffefa;
   border: 1px solid #ddd7ca;
@@ -184,6 +184,11 @@ button.small {
 
 .selected-note {
   box-shadow: inset 0 0 0 2px #d96941;
+}
+
+.coach-panel p:not(.eyebrow) {
+  color: #716a5c;
+  margin: 12px 0 20px;
 }
 
 .status-panel dl {

@@ -15,6 +15,8 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Simple monophonic pitch-class detection
 - Conservative session-relative tuning tolerance
 - Deterministic scoring and canned coaching
+- Background scoring that stays out of the way during Practice
+- Auto-advance after a scored note
 - Clean streak, slow-answer, and repeated-mistake handling
 - Pause/resume so breaks do not count against response time
 - Session structures: `1 x 15`, `3 x 5`, or `5 x 3`
@@ -63,8 +65,9 @@ npm run test:e2e
 2. Click `Start listening` or press `Space`.
 3. Play one clear guitar note into this computer's input.
 4. The app detects a stable pitch class, applies the current session's conservative tuning offset, and scores automatically.
-5. Use `Pause` when you stop for a text or interruption.
-6. Use `Repeat`, `Next`, or `End session` to continue.
+5. Git Neck briefly shows coaching feedback, then advances automatically.
+6. Use `Pause` when you stop for a text or interruption.
+7. Use `Repeat`, `Next`, or `End session` as manual overrides.
 
 ## Session Options
 
@@ -90,6 +93,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - Loud rooms, chords, low input gain, or sustained overtones may confuse detection.
 - Normal microphone input validates pitch, not the physical fret or string.
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
+- Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
 - Session tuning offset is conservative, learned over multiple accepted notes, and reset per session.
 - Simulated input exists only under Settings / Debug.
 - Persistence is a single local JSON state file.

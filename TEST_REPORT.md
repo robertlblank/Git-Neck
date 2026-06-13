@@ -75,6 +75,8 @@ Result: both passed.
 - JavaScript `-0` cents display was normalized to `0c`.
 - Stop Listening blanked the renderer because the click event object was passed into `stopListening(nextStatus)` and rendered as audio status; fixed by wrapping the click handler.
 - Added an E2E regression that clicks Start/Stop listening and asserts the app remains rendered.
+- Practice score/result widgets were removed from the active playing view; E2E asserts Practice does not show `Current streak` or the result panel.
+- Background auto-advance was added so correct answers move on and wrong/slow answers repeat without requiring a click.
 
 ## Current Risk
 
