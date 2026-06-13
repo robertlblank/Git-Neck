@@ -21,7 +21,7 @@ function createWindow(): void {
     minHeight: 640,
     title: "Git Neck",
     webPreferences: {
-      preload: join(__dirname, "../preload/index.mjs"),
+      preload: join(__dirname, "../preload/index.cjs"),
       contextIsolation: true,
       nodeIntegration: false
     }

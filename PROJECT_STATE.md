@@ -40,6 +40,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Local JSON persistence through Electron main/preload IPC.
 - Unit tests and Electron UI workflow tests pass.
 - Project folder is `/Users/robertblank/Guitar Gear Codex/git-neck`.
+- Stop Listening blank-screen bug is fixed and covered by E2E regression.
 
 ## Known Facts
 

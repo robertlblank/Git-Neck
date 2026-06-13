@@ -569,7 +569,7 @@ function PracticeArea(props: {
         <div className="actions">
           <button
             className={props.listening ? "confirmed" : "primary"}
-            onClick={props.listening ? props.onStopListening : props.onStartListening}
+            onClick={props.listening ? () => props.onStopListening() : props.onStartListening}
           >
             {props.listening ? "Stop listening" : "Start listening"}
           </button>

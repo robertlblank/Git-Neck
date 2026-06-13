@@ -11,6 +11,10 @@ export default defineConfig({
   },
   preload: {
     build: {
+      lib: {
+        entry: "src/preload/index.ts",
+        formats: ["cjs"]
+      },
       rollupOptions: {
         input: "src/preload/index.ts"
       }

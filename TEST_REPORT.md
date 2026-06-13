@@ -69,9 +69,12 @@ Result: both passed.
 ## Bugs Found And Fixed
 
 - Built Electron preload path pointed at `out/preload/index.js`, but electron-vite emits `out/preload/index.mjs`; fixed.
+- Built Electron then exposed that sandboxed preload rejected ESM `.mjs`; fixed by emitting CommonJS preload `out/preload/index.cjs`.
 - E2E initially used a flaky debug input locator; fixed with a direct ARIA locator.
 - E2E initially left Electron processes alive on failures; hardened cleanup and live step logging.
 - JavaScript `-0` cents display was normalized to `0c`.
+- Stop Listening blanked the renderer because the click event object was passed into `stopListening(nextStatus)` and rendered as audio status; fixed by wrapping the click handler.
+- Added an E2E regression that clicks Start/Stop listening and asserts the app remains rendered.
 
 ## Current Risk
 
