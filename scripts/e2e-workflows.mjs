@@ -110,9 +110,7 @@ await check("settings and debug simulated scoring work", async () => {
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await assertVisible("Debug simulated input");
   await page.locator('label:has-text("Session structure") select').selectOption("three_5");
-  await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: wrongNote, exact: true }).click();
-  await page.getByRole("button", { name: "Score debug note" }).click();
-  await assertVisible(/pass|wrong_note|too_slow/);
+  await scoreDebugNoteAndWaitForAttempt(wrongNote);
 
   await page.getByRole("button", { name: "Practice" }).click();
   await assertVisible("Locked");
@@ -120,9 +118,7 @@ await check("settings and debug simulated scoring work", async () => {
   await page.getByRole("button", { name: "Repeat" }).click();
 
   await page.getByRole("button", { name: "Settings / Debug" }).click();
-  await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: targetNote, exact: true }).click();
-  await page.getByRole("button", { name: "Score debug note" }).click();
-  await assertVisible("pass");
+  await scoreDebugNoteAndWaitForAttempt(targetNote);
 
   await page.getByRole("button", { name: "Practice" }).click();
   await page.getByRole("button", { name: "Next" }).waitFor({ timeout: 5000 });
@@ -130,24 +126,28 @@ await check("settings and debug simulated scoring work", async () => {
 
 await check("ending a session creates a trend entry", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
+  await page.getByRole("button", { name: "Repeat" }).click();
+  const promptText = await page.locator(".prompt-panel h2").innerText();
+  const targetNote = getTargetNoteForPrompt(promptText);
+  await page.getByRole("button", { name: "Settings / Debug" }).click();
+  await scoreDebugNoteAndWaitForAttempt(targetNote);
+  await page.getByRole("button", { name: "Practice" }).click();
   await page.getByRole("button", { name: "Pause" }).click();
   await assertVisible("Paused. Timer stopped.");
   await page.getByRole("button", { name: "Resume" }).click();
   await page.getByRole("button", { name: "Pause" }).click();
   await assertVisible("Paused. Timer stopped.");
   await page.getByRole("button", { name: "Resume" }).click();
-  const sessionCountBeforeEnd = await getPersistedSessionCount();
+  const completedSessionCountBeforeEnd = await getPersistedCompletedSessionCount();
   await page.getByRole("button", { name: "End session" }).click();
-  await assertVisible("Session saved.");
-  await assert.equal(await getPersistedSessionCount(), sessionCountBeforeEnd + 1);
+  await assert.equal(await getPersistedCompletedSessionCount(), completedSessionCountBeforeEnd + 1);
   await page.getByRole("button", { name: "Progress" }).click();
   await assertVisible("Session trends");
   await assertVisible(/Session \d+/);
-  const sessionCount = await getPersistedSessionCount();
 
   await page.getByRole("button", { name: "Practice" }).click();
+  const sessionCount = await getPersistedSessionCount();
   await page.getByRole("button", { name: "End session" }).click();
-  await assertVisible("No attempts to save.");
   await assert.equal(await getPersistedSessionCount(), sessionCount);
 });
 
@@ -187,10 +187,51 @@ async function assertVisible(textOrRegex) {
   await page.getByText(textOrRegex).first().waitFor({ timeout: 5000 });
 }
 
+async function scoreDebugNoteAndWaitForAttempt(noteName) {
+  const attemptCount = await getPersistedAttemptCount();
+  await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: noteName, exact: true }).click();
+  await page.getByRole("button", { name: "Score debug note" }).click();
+  await waitForPersistedAttemptCountAbove(attemptCount);
+}
+
+async function waitForPersistedAttemptCountAbove(attemptCount) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < 5000) {
+    if ((await getPersistedAttemptCount()) > attemptCount) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Attempt count did not increase above ${attemptCount}`);
+}
+
+async function getPersistedAttemptCount() {
+  return (await getPersistedState()).attempts.length;
+}
+
 async function getPersistedSessionCount() {
+  return (await getPersistedSessions()).length;
+}
+
+async function getPersistedCompletedSessionCount() {
+  return (await getPersistedSessions()).filter((session) => session.status === "completed").length;
+}
+
+async function getPersistedSessions() {
+  return (await getPersistedState()).sessions;
+}
+
+async function getPersistedState() {
   await page.waitForTimeout(300);
-  const raw = await readFile(join(testUserDataDir, "git-neck-state.json"), "utf8");
-  return JSON.parse(raw).sessions.length;
+  try {
+    const raw = await readFile(join(testUserDataDir, "git-neck-state.json"), "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return { attempts: [], sessions: [] };
+  }
 }
 
 function getWrongNoteForPrompt(promptText) {

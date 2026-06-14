@@ -16,10 +16,10 @@ Result: passed.
 
 ```text
 Test Files  7 passed (7)
-Tests       35 passed (35)
+Tests       39 passed (39)
 ```
 
-Coverage includes notes, fretboard, audio pitch helpers, idle-silence timing exclusion, conservative tuning offset, sessions, scoring, mastery/workout, persistence, and Tiger Mode default migration.
+Coverage includes notes, fretboard, audio pitch helpers, idle-silence timing exclusion, conservative tuning offset, active/completed/interrupted sessions, scoring, mastery/workout, persistence, and Tiger Mode default migration.
 
 ```bash
 npm run typecheck
@@ -46,7 +46,7 @@ Covered:
 - microphone start invocation with fake media
 - Settings / Debug simulated scoring fallback
 - Tiger Mode lock/unlock regression: intentional debug miss returns to Practice as `Locked`; correct retry clears back to `Next`
-- End session creates a trend entry and an immediate empty End session does not add a zero-attempt trend
+- End session marks an active persisted session completed, creates a trend entry, and an immediate empty End session does not add a zero-attempt trend
 - Progress recent attempts
 - settings persistence across Electron relaunch
 
@@ -82,6 +82,7 @@ Result: both passed.
 - Tiger Mode was made default-on and real: wrong/slow answers lock the prompt until a pass, the Practice `Next` control becomes `Locked`, old v1 persisted defaults migrate to strict repeat, and E2E now verifies lock/unlock behavior.
 - Idle-silence forgiveness was added so quiet breaks over 5 seconds are excluded from response timing instead of creating slow attempts.
 - Empty sessions are no longer saved to Progress when `End session` is clicked without any attempts.
+- Local usage tracking was added: sessions are persisted as `active` once attempts begin, marked `completed` on `End session`, and recovered as `interrupted` on the next launch if the app stopped mid-session.
 
 ## Real State Inspection On 2026-06-14
 
@@ -121,7 +122,7 @@ Action taken:
 - `End session` now saves a completed session only when there is at least one attempt.
 - E2E now verifies that a real session creates a trend and an immediate empty session does not increase persisted session count.
 
-## Latest Verification After Idle Timing Fix
+## Latest Verification After Local Usage Tracking
 
 Run from:
 
@@ -142,7 +143,7 @@ Result:
 
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
-- `npm test`: passed, 7 files / 35 tests.
+- `npm test`: passed, 7 files / 39 tests.
 - `npm run build`: passed.
 - `npm run test:e2e`: passed full Electron workflow test.
 - `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was already occupied. Dev processes were stopped after verification.
@@ -155,7 +156,7 @@ Automated checks pass. The remaining risk is real-world pitch detection quality 
 
 Known:
 
-- Unit tests pass: 35 tests.
+- Unit tests pass: 39 tests.
 - Built Electron E2E workflow passes with fake media.
 - Preload path is fixed for built Electron.
 - Project has been renamed to Git Neck in package metadata, UI, docs, IPC names, storage names, and tests.

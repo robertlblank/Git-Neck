@@ -64,7 +64,7 @@ describe("persistence repository", () => {
 
     const migrated = normalizeAppState(oldState);
 
-    expect(migrated.version).toBe(2);
+    expect(migrated.version).toBe(3);
     expect(migrated.settings.tigerMode).toBe(true);
   });
 
@@ -74,7 +74,7 @@ describe("persistence repository", () => {
 
     const loaded = normalizeAppState(state);
 
-    expect(loaded.version).toBe(2);
+    expect(loaded.version).toBe(3);
     expect(loaded.settings.tigerMode).toBe(false);
   });
 });

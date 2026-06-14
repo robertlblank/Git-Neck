@@ -1,5 +1,5 @@
 import { createInitialMasteryState } from "../domain/mastery";
-import type { AppState, Settings } from "../domain/types";
+import type { AppState, PracticeSession, Settings } from "../domain/types";
 
 export const DEFAULT_SETTINGS: Settings = {
   workoutLengthMinutes: 15,
@@ -14,7 +14,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export function createDefaultAppState(): AppState {
   return {
-    version: 2,
+    version: 3,
     settings: { ...DEFAULT_SETTINGS },
     mastery: createInitialMasteryState(),
     attempts: [],
@@ -39,7 +39,7 @@ export function normalizeAppState(value: unknown): AppState {
       : incomingSettings.tigerMode ?? defaults.settings.tigerMode;
 
   return {
-    version: 2,
+    version: 3,
     settings: {
       ...defaults.settings,
       ...incomingSettings,
@@ -49,6 +49,13 @@ export function normalizeAppState(value: unknown): AppState {
     mastery: partial.mastery ?? defaults.mastery,
     attempts: partial.attempts ?? [],
     currentLevel: partial.currentLevel ?? defaults.currentLevel,
-    sessions: partial.sessions ?? []
+    sessions: normalizeSessions(partial.sessions)
   };
+}
+
+function normalizeSessions(sessions: AppState["sessions"] | undefined): PracticeSession[] {
+  return (sessions ?? []).map((session) => ({
+    ...session,
+    status: session.status ?? (session.endedAtMs === null ? "interrupted" : "completed")
+  }));
 }

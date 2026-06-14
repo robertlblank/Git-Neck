@@ -23,6 +23,8 @@ export type AttemptSource = "microphone" | "simulated";
 
 export type SessionStructure = "one_15" | "three_5" | "five_3";
 
+export type PracticeSessionStatus = "active" | "completed" | "interrupted";
+
 export type Attempt = {
   id: string;
   promptId: string;
@@ -75,6 +77,7 @@ export type PracticeSession = {
   id: string;
   mode: DrillMode;
   structure: SessionStructure;
+  status: PracticeSessionStatus;
   segmentCount: number;
   segmentDurationMinutes: number;
   startedAtMs: number;
@@ -85,7 +88,7 @@ export type PracticeSession = {
 };
 
 export type AppState = {
-  version: 2;
+  version: 3;
   settings: Settings;
   mastery: MasteryState;
   attempts: Attempt[];

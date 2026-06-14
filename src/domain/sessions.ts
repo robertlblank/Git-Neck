@@ -10,6 +10,7 @@ export type SessionStructureConfig = {
 export type SessionTrend = {
   sessionId: string;
   label: string;
+  status: PracticeSession["status"];
   attempts: number;
   accuracyPercent: number;
   averageResponseMs: number;
@@ -58,12 +59,44 @@ export function createCompletedPracticeSession(params: {
   activePracticeMs: number;
   attemptIds: string[];
 }): PracticeSession {
+  return createPracticeSession({
+    ...params,
+    status: "completed"
+  });
+}
+
+export function createActivePracticeSession(params: {
+  id: string;
+  mode: PracticeSession["mode"];
+  structure: SessionStructure;
+  startedAtMs: number;
+  activePracticeMs: number;
+  attemptIds: string[];
+}): PracticeSession {
+  return createPracticeSession({
+    ...params,
+    endedAtMs: null,
+    status: "active"
+  });
+}
+
+export function createPracticeSession(params: {
+  id: string;
+  mode: PracticeSession["mode"];
+  structure: SessionStructure;
+  status: PracticeSession["status"];
+  startedAtMs: number;
+  endedAtMs: number | null;
+  activePracticeMs: number;
+  attemptIds: string[];
+}): PracticeSession {
   const config = getSessionStructureConfig(params.structure);
 
   return {
     id: params.id,
     mode: params.mode,
     structure: params.structure,
+    status: params.status,
     segmentCount: config.segmentCount,
     segmentDurationMinutes: config.segmentDurationMinutes,
     startedAtMs: params.startedAtMs,
@@ -72,6 +105,68 @@ export function createCompletedPracticeSession(params: {
     completedSegments: getCompletedSegments(params.activePracticeMs, params.structure),
     attemptIds: params.attemptIds
   };
+}
+
+export function appendAttemptToActiveSession(params: {
+  sessions: PracticeSession[];
+  sessionId: string;
+  mode: PracticeSession["mode"];
+  structure: SessionStructure;
+  startedAtMs: number;
+  activePracticeMs: number;
+  attemptId: string;
+}): PracticeSession[] {
+  const existing = params.sessions.find((session) => session.id === params.sessionId);
+  const nextAttemptIds = existing?.attemptIds.includes(params.attemptId)
+    ? existing.attemptIds
+    : [...(existing?.attemptIds ?? []), params.attemptId];
+  const nextSession = createActivePracticeSession({
+    id: params.sessionId,
+    mode: params.mode,
+    structure: params.structure,
+    startedAtMs: existing?.startedAtMs ?? params.startedAtMs,
+    activePracticeMs: params.activePracticeMs,
+    attemptIds: nextAttemptIds
+  });
+
+  if (!existing) {
+    return [...params.sessions, nextSession];
+  }
+
+  return params.sessions.map((session) => (session.id === params.sessionId ? nextSession : session));
+}
+
+export function completeActiveSession(params: {
+  sessions: PracticeSession[];
+  sessionId: string;
+  endedAtMs: number;
+  activePracticeMs: number;
+}): PracticeSession[] {
+  return params.sessions.map((session) =>
+    session.id === params.sessionId
+      ? {
+          ...session,
+          status: "completed",
+          endedAtMs: params.endedAtMs,
+          activePracticeMs: params.activePracticeMs,
+          completedSegments: getCompletedSegments(params.activePracticeMs, session.structure)
+        }
+      : session
+  );
+}
+
+export function recoverInterruptedSessions(sessions: PracticeSession[], nowMs: number): PracticeSession[] {
+  return sessions
+    .filter((session) => session.status !== "active" || session.attemptIds.length > 0)
+    .map((session) =>
+      session.status === "active"
+        ? {
+            ...session,
+            status: "interrupted",
+            endedAtMs: nowMs
+          }
+        : session
+    );
 }
 
 export function getSessionTrends(appState: AppState, count = 5): SessionTrend[] {
@@ -90,6 +185,7 @@ export function getSessionTrends(appState: AppState, count = 5): SessionTrend[] 
       return {
         sessionId: session.id,
         label: `Session ${appState.sessions.length - index}`,
+        status: session.status,
         attempts: attempts.length,
         accuracyPercent: attempts.length === 0 ? 0 : Math.round((correct / attempts.length) * 100),
         averageResponseMs: attempts.length === 0 ? 0 : Math.round(totalResponseMs / attempts.length),

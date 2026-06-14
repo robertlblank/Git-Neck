@@ -27,6 +27,7 @@
 - Do not claim automatic string detection.
 - Do not claim physical fret detection from normal microphone audio.
 - Persistence is local-only.
+- Product usage tracking is local-first: sessions are stored as active, completed, or interrupted in the local JSON state. Do not add cloud/backend telemetry unless Robert explicitly changes the local-only plan.
 
 ## Non-Goals
 

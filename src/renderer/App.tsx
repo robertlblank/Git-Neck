@@ -22,12 +22,15 @@ import { getCoachingFeedback } from "../domain/coaching";
 import { getDisplayName, PITCH_CLASSES } from "../domain/notes";
 import { scoreAttempt } from "../domain/scoring";
 import {
+  appendAttemptToActiveSession,
+  completeActiveSession,
   createCompletedPracticeSession,
   getCurrentSegment,
   getSessionSegmentRemainingMs,
   getSessionStructureConfig,
   getSessionTargetMs,
   getSessionTrends,
+  recoverInterruptedSessions,
   SESSION_STRUCTURES
 } from "../domain/sessions";
 import type { AppState, Attempt, AttemptSource, DrillMode, DrillPrompt, Settings } from "../domain/types";
@@ -67,6 +70,7 @@ export function App(): ReactElement {
   const [sessionPausedMs, setSessionPausedMs] = useState(0);
   const [sessionPauseStartedAtMs, setSessionPauseStartedAtMs] = useState<number | null>(null);
   const [sessionActiveMs, setSessionActiveMs] = useState(0);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [sessionAttemptIds, setSessionAttemptIds] = useState<string[]>([]);
   const [sessionTuningOffsetCents, setSessionTuningOffsetCents] = useState(0);
   const [sessionTuningSamples, setSessionTuningSamples] = useState(0);
@@ -85,12 +89,17 @@ export function App(): ReactElement {
         return;
       }
 
-      setAppState(state);
+      const recoveredState: AppState = {
+        ...state,
+        sessions: recoverInterruptedSessions(state.sessions, Date.now())
+      };
+
+      setAppState(recoveredState);
       setShowFretboard(state.settings.revealFretboardDefault);
       setPrompt(
         selectNextPrompt({
-          mastery: state.mastery,
-          currentLevel: state.currentLevel,
+          mastery: recoveredState.mastery,
+          currentLevel: recoveredState.currentLevel,
           nowMs: Date.now(),
           mode: "daily"
         })
@@ -229,20 +238,42 @@ export function App(): ReactElement {
       nowMs
     });
 
+    const activePracticeMs =
+      nowMs - sessionStartedAtMs - sessionPausedMs - (sessionPauseStartedAtMs === null ? 0 : nowMs - sessionPauseStartedAtMs);
+    const activeSessionId = currentSessionId ?? `session-${sessionStartedAtMs}`;
+    const nextSessions = appendAttemptToActiveSession({
+      sessions: appState.sessions,
+      sessionId: activeSessionId,
+      mode,
+      structure: appState.settings.sessionStructure,
+      startedAtMs: sessionStartedAtMs,
+      activePracticeMs,
+      attemptId: outcome.attempt.id
+    });
     const nextState: AppState = {
       ...appState,
       attempts: [...appState.attempts, outcome.attempt],
-      mastery: updateMastery(appState.mastery, outcome.attempt)
+      mastery: updateMastery(appState.mastery, outcome.attempt),
+      sessions: nextSessions
     };
 
     setAppState(nextState);
+    setCurrentSessionId(activeSessionId);
     setSessionAttemptIds((attemptIds) => [...attemptIds, outcome.attempt.id]);
     setLastAttempt(outcome.attempt);
     setMissLockedPrompt(outcome.attempt.result === "pass" ? null : prompt);
     setElapsedMs(outcome.attempt.responseMs);
     setFeedback(getCoachingFeedback(outcome.attempt, prompt));
     setShowFretboard(true);
-  }, [appState, mode, prompt]);
+  }, [
+    appState,
+    currentSessionId,
+    mode,
+    prompt,
+    sessionPauseStartedAtMs,
+    sessionPausedMs,
+    sessionStartedAtMs
+  ]);
 
   const togglePause = useCallback(() => {
     if (paused) {
@@ -270,18 +301,30 @@ export function App(): ReactElement {
       nowMs - sessionStartedAtMs - sessionPausedMs - (sessionPauseStartedAtMs === null ? 0 : nowMs - sessionPauseStartedAtMs);
     const completedSession =
       sessionAttemptIds.length > 0
-        ? createCompletedPracticeSession({
-            id: `session-${nowMs}`,
-            mode,
-            structure: appState.settings.sessionStructure,
-            startedAtMs: sessionStartedAtMs,
-            endedAtMs: nowMs,
-            activePracticeMs,
-            attemptIds: sessionAttemptIds
-          })
+        ? currentSessionId === null
+          ? createCompletedPracticeSession({
+              id: `session-${nowMs}`,
+              mode,
+              structure: appState.settings.sessionStructure,
+              startedAtMs: sessionStartedAtMs,
+              endedAtMs: nowMs,
+              activePracticeMs,
+              attemptIds: sessionAttemptIds
+            })
+          : null
         : null;
 
-    if (completedSession) {
+    if (currentSessionId !== null) {
+      setAppState({
+        ...appState,
+        sessions: completeActiveSession({
+          sessions: appState.sessions,
+          sessionId: currentSessionId,
+          endedAtMs: nowMs,
+          activePracticeMs
+        })
+      });
+    } else if (completedSession) {
       setAppState({
         ...appState,
         sessions: [...appState.sessions, completedSession]
@@ -291,6 +334,7 @@ export function App(): ReactElement {
     setSessionPausedMs(0);
     setSessionPauseStartedAtMs(null);
     setSessionActiveMs(0);
+    setCurrentSessionId(null);
     setSessionAttemptIds([]);
     setMissLockedPrompt(null);
     setSessionTuningOffsetCents(0);
@@ -300,6 +344,7 @@ export function App(): ReactElement {
     setMicEnabled(false);
   }, [
     appState,
+    currentSessionId,
     mode,
     sessionAttemptIds,
     sessionPauseStartedAtMs,
@@ -776,6 +821,7 @@ function ProgressArea(props: {
           {props.sessionTrends.map((trend) => (
             <div className="attempt-row trend-row" key={trend.sessionId}>
               <span>{trend.label}</span>
+              <span>{trend.status}</span>
               <span>{trend.accuracyPercent}%</span>
               <span>{trend.averageResponseMs}ms avg</span>
               <span>{formatDuration(trend.activePracticeMs)}</span>

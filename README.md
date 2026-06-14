@@ -24,6 +24,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Pause/resume so breaks do not count against response time
 - Session structures: `1 x 15`, `3 x 5`, or `5 x 3`
 - Completed session trends
+- Local usage tracking with active, completed, and interrupted session status
 - Empty-session suppression so Progress does not get zero-attempt rows
 - Basic mastery tracking and workout prompt weighting
 - Local JSON persistence through Electron IPC
@@ -105,12 +106,13 @@ Paused time does not count toward the prompt response timer or active session ti
 - Session tuning offset is conservative, learned over multiple accepted notes, and reset per session.
 - Simulated input exists only under Settings / Debug.
 - Persistence is a single local JSON state file.
+- Usage tracking is local-only; there is no analytics backend or cloud telemetry.
 - `npm install` reported dependency audit findings from the installed third-party tree.
 
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 35 tests.
+- `npm test`: passed, 39 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
