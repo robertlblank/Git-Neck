@@ -24,6 +24,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Pause/resume so breaks do not count against response time
 - Session structures: `1 x 15`, `3 x 5`, or `5 x 3`
 - Completed session trends
+- Empty-session suppression so Progress does not get zero-attempt rows
 - Basic mastery tracking and workout prompt weighting
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas

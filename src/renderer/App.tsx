@@ -268,20 +268,25 @@ export function App(): ReactElement {
     const nowMs = Date.now();
     const activePracticeMs =
       nowMs - sessionStartedAtMs - sessionPausedMs - (sessionPauseStartedAtMs === null ? 0 : nowMs - sessionPauseStartedAtMs);
-    const completedSession = createCompletedPracticeSession({
-      id: `session-${nowMs}`,
-      mode,
-      structure: appState.settings.sessionStructure,
-      startedAtMs: sessionStartedAtMs,
-      endedAtMs: nowMs,
-      activePracticeMs,
-      attemptIds: sessionAttemptIds
-    });
+    const completedSession =
+      sessionAttemptIds.length > 0
+        ? createCompletedPracticeSession({
+            id: `session-${nowMs}`,
+            mode,
+            structure: appState.settings.sessionStructure,
+            startedAtMs: sessionStartedAtMs,
+            endedAtMs: nowMs,
+            activePracticeMs,
+            attemptIds: sessionAttemptIds
+          })
+        : null;
 
-    setAppState({
-      ...appState,
-      sessions: [...appState.sessions, completedSession]
-    });
+    if (completedSession) {
+      setAppState({
+        ...appState,
+        sessions: [...appState.sessions, completedSession]
+      });
+    }
     setSessionStartedAtMs(nowMs);
     setSessionPausedMs(0);
     setSessionPauseStartedAtMs(null);
@@ -291,7 +296,7 @@ export function App(): ReactElement {
     setSessionTuningOffsetCents(0);
     setSessionTuningSamples(0);
     setPaused(false);
-    setFeedback("Session saved. Start the next one clean.");
+    setFeedback(completedSession ? "Session saved. Start the next one clean." : "No attempts to save. Start clean.");
     setMicEnabled(false);
   }, [
     appState,

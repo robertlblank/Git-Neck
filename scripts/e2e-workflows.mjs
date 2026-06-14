@@ -1,6 +1,6 @@
 import { _electron as electron } from "playwright";
 import { strict as assert } from "node:assert";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -130,11 +130,25 @@ await check("settings and debug simulated scoring work", async () => {
 
 await check("ending a session creates a trend entry", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
+  await page.getByRole("button", { name: "Pause" }).click();
+  await assertVisible("Paused. Timer stopped.");
+  await page.getByRole("button", { name: "Resume" }).click();
+  await page.getByRole("button", { name: "Pause" }).click();
+  await assertVisible("Paused. Timer stopped.");
+  await page.getByRole("button", { name: "Resume" }).click();
+  const sessionCountBeforeEnd = await getPersistedSessionCount();
   await page.getByRole("button", { name: "End session" }).click();
   await assertVisible("Session saved.");
+  await assert.equal(await getPersistedSessionCount(), sessionCountBeforeEnd + 1);
   await page.getByRole("button", { name: "Progress" }).click();
   await assertVisible("Session trends");
   await assertVisible(/Session \d+/);
+  const sessionCount = await getPersistedSessionCount();
+
+  await page.getByRole("button", { name: "Practice" }).click();
+  await page.getByRole("button", { name: "End session" }).click();
+  await assertVisible("No attempts to save.");
+  await assert.equal(await getPersistedSessionCount(), sessionCount);
 });
 
 await check("progress shows recent attempts", async () => {
@@ -171,6 +185,12 @@ if (failures.length > 0) {
 
 async function assertVisible(textOrRegex) {
   await page.getByText(textOrRegex).first().waitFor({ timeout: 5000 });
+}
+
+async function getPersistedSessionCount() {
+  await page.waitForTimeout(300);
+  const raw = await readFile(join(testUserDataDir, "git-neck-state.json"), "utf8");
+  return JSON.parse(raw).sessions.length;
 }
 
 function getWrongNoteForPrompt(promptText) {

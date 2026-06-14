@@ -38,6 +38,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Idle silence over 5 seconds is excluded from response timing so quiet interruptions do not become slow attempts.
 - Session structures support `1 x 15`, `3 x 5`, and `5 x 3`.
 - Completed session trends show session accuracy, average response time, attempt count, and active duration.
+- Empty sessions are not saved to Progress when `End session` is clicked without attempts.
 - Conservative session tuning offset learns slowly from accepted target notes and resets each session.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
@@ -52,7 +53,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Known Facts
 
-- The built Electron app loads the emitted preload file at `out/preload/index.mjs`.
+- The built Electron app loads the emitted preload file at `out/preload/index.cjs`.
 - Local persistence is through Electron IPC to `git-neck-state.json`.
 - E2E tests use a temporary `GIT_NECK_USER_DATA_DIR`, so they do not write to Robert's real practice history.
 - Debug simulated input is not the primary practice flow.
@@ -60,6 +61,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Session tuning offset is intentionally conservative: it learns slowly, ignores large observations, clamps the offset, and resets each session.
 - App state schema is now version 2 to migrate old Tiger Mode defaults.
 - Real state inspection on 2026-06-14 showed Tiger Mode worked: misses stayed on C/F/B/D until the target was hit. It also showed long silent gaps could previously inflate response time, which is now fixed.
+- Real state inspection after Robert's progress check on 2026-06-14 showed Progress did track the ended 11:37 AM session: 7 attempts, 5 pass, 2 wrong, 934ms average response. It also showed empty sessions could clutter Progress; empty-session saving is now fixed.
 
 ## What Is Partial
 

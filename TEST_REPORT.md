@@ -46,7 +46,7 @@ Covered:
 - microphone start invocation with fake media
 - Settings / Debug simulated scoring fallback
 - Tiger Mode lock/unlock regression: intentional debug miss returns to Practice as `Locked`; correct retry clears back to `Next`
-- End session creates a trend entry
+- End session creates a trend entry and an immediate empty End session does not add a zero-attempt trend
 - Progress recent attempts
 - settings persistence across Electron relaunch
 
@@ -81,6 +81,7 @@ Result: both passed.
 - Continuous microphone flow was added so Practice starts/restarts listening between prompts without per-note click-through; E2E asserts this behavior.
 - Tiger Mode was made default-on and real: wrong/slow answers lock the prompt until a pass, the Practice `Next` control becomes `Locked`, old v1 persisted defaults migrate to strict repeat, and E2E now verifies lock/unlock behavior.
 - Idle-silence forgiveness was added so quiet breaks over 5 seconds are excluded from response timing instead of creating slow attempts.
+- Empty sessions are no longer saved to Progress when `End session` is clicked without any attempts.
 
 ## Real State Inspection On 2026-06-14
 
@@ -104,6 +105,21 @@ Known from Robert's real mic/guitar run:
 Action taken:
 
 - Added idle-silence timing exclusion so quiet gaps over 5 seconds are ignored by response timing.
+
+## Real State Inspection After Progress Check On 2026-06-14
+
+Known from Robert's follow-up run:
+
+- Total persisted attempts increased to 109.
+- Total persisted sessions increased to 5.
+- The 11:37 AM session did track in Progress: 7 attempts, 5 pass, 2 wrong_note, average response 934ms, active time 42.8s.
+- The 5-second idle test worked: the latest idle-after-quiet attempts were saved as passes, not `too_slow`.
+- A second empty 3.3s session was saved after the real session, which made Progress harder to read.
+
+Action taken:
+
+- `End session` now saves a completed session only when there is at least one attempt.
+- E2E now verifies that a real session creates a trend and an immediate empty session does not increase persisted session count.
 
 ## Latest Verification After Idle Timing Fix
 
