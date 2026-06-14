@@ -34,7 +34,7 @@ import {
   SESSION_STRUCTURES
 } from "../domain/sessions";
 import type { AppState, Attempt, AttemptSource, DrillMode, DrillPrompt, Settings } from "../domain/types";
-import { getNextWorkoutFocus, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
+import { getNextWorkoutFocus, getNextWorkoutRationale, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
 import { createDefaultAppState, normalizeAppState } from "../persistence/schema";
 
 type Area = "practice" | "progress" | "settings";
@@ -683,6 +683,12 @@ export function App(): ReactElement {
   const recentAttempts = appState.attempts.slice(-8).reverse();
   const workoutPlan = getWorkoutPlan(appState.mastery, appState.currentLevel);
   const activeFocusSet = workoutPlan.activePitchClasses.map((pitchClass) => getDisplayName(pitchClass)).join(", ");
+  const nextWorkoutRationale = getNextWorkoutRationale({
+    attempts: appState.attempts,
+    currentLevel: appState.currentLevel,
+    mastery: appState.mastery,
+    nowMs: Date.now()
+  });
 
   return (
     <main className="app-shell">
@@ -712,6 +718,7 @@ export function App(): ReactElement {
           feedback={feedback}
           lastAttempt={lastAttempt}
           mode={mode}
+          nextWorkoutRationale={nextWorkoutRationale}
           onModeChange={setMode}
           onEndSession={endSession}
           onChangeSessionType={() => setArea("settings")}
@@ -747,6 +754,7 @@ export function App(): ReactElement {
           appState={appState}
           currentLevelName={level.name}
           nextWorkoutFocus={getNextWorkoutFocus(appState.mastery, appState.currentLevel)}
+          nextWorkoutRationale={nextWorkoutRationale}
           recentAttempts={recentAttempts}
           sessionTrends={getSessionTrends(appState)}
         />
@@ -784,6 +792,7 @@ function PracticeArea(props: {
   listening: boolean;
   micEnabled: boolean;
   mode: DrillMode;
+  nextWorkoutRationale: ReturnType<typeof getNextWorkoutRationale>;
   onChangeSessionType: () => void;
   onModeChange: (mode: DrillMode) => void;
   onEndSession: () => void;
@@ -819,6 +828,7 @@ function PracticeArea(props: {
     return (
       <section className="practice-grid">
         <PostSessionPanel
+          nextWorkoutRationale={props.nextWorkoutRationale}
           onChangeSessionType={props.onChangeSessionType}
           onReviewProgress={props.onReviewProgress}
           onStartNewSession={props.onStartNewSession}
@@ -925,6 +935,7 @@ function PracticeArea(props: {
 }
 
 function PostSessionPanel(props: {
+  nextWorkoutRationale: ReturnType<typeof getNextWorkoutRationale>;
   onChangeSessionType: () => void;
   onReviewProgress: () => void;
   onStartNewSession: () => void;
@@ -964,6 +975,11 @@ function PostSessionPanel(props: {
         <p className="eyebrow">Next focus</p>
         <strong>{props.summary.weakestNotes.length === 0 ? "Clean session" : props.summary.weakestNotes.join(", ")}</strong>
         <span>Based on misses and slow answers from this session.</span>
+      </div>
+      <div className="listener-panel">
+        <p className="eyebrow">Why</p>
+        <strong>{props.nextWorkoutRationale.headline}</strong>
+        <span>{props.nextWorkoutRationale.detail}</span>
       </div>
       <div className="actions">
         <button className="primary" onClick={props.onStartNewSession}>
@@ -1005,6 +1021,7 @@ function ProgressArea(props: {
   appState: AppState;
   currentLevelName: string;
   nextWorkoutFocus: string;
+  nextWorkoutRationale: ReturnType<typeof getNextWorkoutRationale>;
   recentAttempts: Attempt[];
   sessionTrends: ReturnType<typeof getSessionTrends>;
 }): ReactElement {
@@ -1022,6 +1039,11 @@ function ProgressArea(props: {
         <div>
           <p className="eyebrow">Next workout focus</p>
           <h2>{props.nextWorkoutFocus}</h2>
+          <p className="eyebrow rationale-label">Why this focus</p>
+          <p className="summary-note">
+            <strong>{props.nextWorkoutRationale.headline}</strong>
+            <span>{props.nextWorkoutRationale.detail}</span>
+          </p>
         </div>
       </div>
       <div className="metric-grid">

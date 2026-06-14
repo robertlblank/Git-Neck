@@ -35,6 +35,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Practice shows a compact prompt-adjacent result badge: `Correct`, `Missed`, `Too slow`, or `Locked until clean`, including the heard note when available.
 - Practice shows the active curriculum focus set in the session strip.
+- Progress and Session Complete show why Git Neck is choosing the next focus, such as contrast work, accuracy work, speed work, or retention review.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
 - Tiger Mode is default-on and enforces the same prompt after a miss or too-slow answer until the user gets it right.
 - Pause/resume excludes break time from response scoring and active session time.
@@ -99,4 +100,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Next product step should make the training decision legible in Progress or the Session Complete summary without cluttering the active Practice screen.
+Next product step should let Robert test a real practice run and verify that the new training rationale feels accurate without cluttering the active Practice screen.

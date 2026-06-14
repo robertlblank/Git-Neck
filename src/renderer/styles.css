@@ -309,6 +309,18 @@ button.small {
   color: #f0c879;
 }
 
+.summary-note {
+  color: #e7ded0;
+  display: grid;
+  gap: 4px;
+  line-height: 1.35;
+  margin: 12px 0 0;
+}
+
+.summary-note span {
+  color: #cfc5b6;
+}
+
 .metric-grid,
 .settings-grid {
   display: grid;

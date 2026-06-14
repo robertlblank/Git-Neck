@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { createDrillPrompt } from "../domain/drills";
 import { createInitialMasteryState, updateMastery } from "../domain/mastery";
 import { scoreAttempt } from "../domain/scoring";
-import { getNextWorkoutFocus, getTrainingSelectionPlan, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
+import {
+  getNextWorkoutFocus,
+  getNextWorkoutRationale,
+  getTrainingSelectionPlan,
+  getWorkoutPlan,
+  selectNextPrompt
+} from "../domain/workout";
 
 function attemptFor(targetPitchClass: number, submittedPitchClass: number, responseMs = 900) {
   const prompt = createDrillPrompt({
@@ -170,5 +176,61 @@ describe("mastery and workout", () => {
 
     expect(plan.activePitchClasses).toEqual([2]);
     expect(plan.contrastPitchClasses).toEqual([7]);
+  });
+
+  it("explains contrast work when the same miss repeats", () => {
+    const mastery = createInitialMasteryState();
+    const attempts = [
+      attemptFor(7, 5),
+      attemptFor(7, 5)
+    ];
+
+    const rationale = getNextWorkoutRationale({
+      attempts,
+      currentLevel: 1,
+      mastery,
+      nowMs: 5000
+    });
+
+    expect(rationale.headline).toBe("Contrast work: G vs F");
+    expect(rationale.detail).toContain("Same miss repeated");
+  });
+
+  it("explains slow recall without treating it as wrong-note accuracy", () => {
+    const mastery = createInitialMasteryState();
+    const attempts = [
+      attemptFor(2, 2, 3400),
+      attemptFor(2, 2, 3500),
+      attemptFor(2, 2, 3600)
+    ];
+
+    const rationale = getNextWorkoutRationale({
+      attempts,
+      currentLevel: 1,
+      mastery,
+      nowMs: 5000
+    });
+
+    expect(rationale.headline).toBe("Speed work: D");
+    expect(rationale.detail).toContain("not automatically yet");
+  });
+
+  it("explains retention review after time away", () => {
+    const mastery = createInitialMasteryState();
+    const attempts = [
+      attemptFor(0, 0),
+      attemptFor(0, 0),
+      attemptFor(0, 0)
+    ];
+
+    const rationale = getNextWorkoutRationale({
+      attempts,
+      currentLevel: 1,
+      mastery,
+      nowMs: 2000 + 24 * 60 * 60 * 1000
+    });
+
+    expect(rationale.headline).toBe("Retention review: C");
+    expect(rationale.detail).toContain("due after time away");
   });
 });

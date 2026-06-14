@@ -19,6 +19,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Background scoring that stays out of the way during Practice
 - Compact prompt-adjacent feedback showing correct/missed/too-slow/locked results while practicing
 - Curriculum focus sets in Daily Workout, visible in Practice
+- Training-rationale explanations in Progress and Session Complete, kept out of active playing
 - Auto-advance after a scored note
 - Tiger Mode default-on: misses and too-slow hits repeat the same prompt until clean
 - Idle-silence forgiveness so quiet breaks over 5 seconds are ignored by the response timer
@@ -121,7 +122,7 @@ Paused time does not count toward the prompt response timer or active session ti
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 54 tests.
+- `npm test`: passed, 57 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.

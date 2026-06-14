@@ -152,8 +152,10 @@ await check("ending a session creates a trend entry", async () => {
   await assertVisible("Start another session");
   await assertVisible("Review progress");
   await assertVisible("Change session type");
+  await assertVisible("Why");
   await page.getByRole("button", { name: "Progress", exact: true }).click();
   await assertVisible("Session trends");
+  await assertVisible("Why this focus");
   await assertVisible(/Session \d+/);
 
   await page.getByRole("button", { name: "Practice" }).click();

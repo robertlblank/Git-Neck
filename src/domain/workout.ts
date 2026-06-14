@@ -82,6 +82,11 @@ export type TrainingSelectionPlan = {
   assessments: TrainingSkillAssessment[];
 };
 
+export type WorkoutRationale = {
+  headline: string;
+  detail: string;
+};
+
 export function getWorkoutPlan(mastery: MasteryState, currentLevel: number): WorkoutPlan {
   const level = getCurrentLevel(currentLevel);
   const focusGroups = level.focusGroups.length > 0 ? level.focusGroups : [level.pitchClasses];
@@ -114,6 +119,61 @@ export function getNextWorkoutFocus(mastery: MasteryState, currentLevel = 1): st
   }
 
   return `Current set: ${active}`;
+}
+
+export function getNextWorkoutRationale(params: {
+  attempts: Attempt[];
+  currentLevel: number;
+  mastery: MasteryState;
+  nowMs: number;
+}): WorkoutRationale {
+  const plan = getWorkoutPlan(params.mastery, params.currentLevel);
+  const trainingPlan = getTrainingSelectionPlan({
+    attempts: params.attempts,
+    nowMs: params.nowMs,
+    pitchClasses: plan.availablePitchClasses
+  });
+
+  const contrast = trainingPlan.assessments.filter((assessment) => assessment.state === "repeated_confusion");
+  if (contrast.length > 0) {
+    const pair = contrast[0];
+    const confusedWith =
+      pair.confusedWithPitchClass === undefined ? "nearby note" : PITCH_CLASSES[pair.confusedWithPitchClass].displayName;
+    return {
+      headline: `Contrast work: ${pair.label} vs ${confusedWith}`,
+      detail: "Same miss repeated. Git Neck will make that contrast deliberate."
+    };
+  }
+
+  const weakAccuracy = trainingPlan.assessments.filter((assessment) => assessment.state === "weak_accuracy");
+  if (weakAccuracy.length > 0) {
+    return {
+      headline: `Accuracy work: ${formatAssessmentLabels(weakAccuracy)}`,
+      detail: "These notes are getting extra reps because misses are still showing up."
+    };
+  }
+
+  const slowRecall = trainingPlan.assessments.filter((assessment) => assessment.state === "slow_recall");
+  if (slowRecall.length > 0) {
+    return {
+      headline: `Speed work: ${formatAssessmentLabels(slowRecall)}`,
+      detail: "You are finding these notes, but not automatically yet."
+    };
+  }
+
+  const retention = trainingPlan.assessments.filter((assessment) => assessment.state === "retention_failed");
+  if (retention.length > 0) {
+    return {
+      headline: `Retention review: ${formatAssessmentLabels(retention)}`,
+      detail: "These notes are due after time away so they stay learned."
+    };
+  }
+
+  const active = plan.activePitchClasses.map((pitchClass) => PITCH_CLASSES[pitchClass].displayName).join(", ");
+  return {
+    headline: `Current set: ${active}`,
+    detail: "No sharp weakness is leading yet. Keep building the current set."
+  };
 }
 
 export function getTrainingSelectionPlan(params: {
@@ -152,6 +212,13 @@ function getAssessmentPitchClasses(
   return assessments
     .filter((assessment) => states.includes(assessment.state))
     .map((assessment) => assessment.targetPitchClass);
+}
+
+function formatAssessmentLabels(assessments: TrainingSkillAssessment[]): string {
+  return assessments
+    .slice(0, 3)
+    .map((assessment) => assessment.label)
+    .join(", ");
 }
 
 function isFocusGroupReady(group: number[], mastery: MasteryState): boolean {

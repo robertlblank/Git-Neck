@@ -367,3 +367,40 @@ Coverage added:
 - Training selection plan exposes active, contrast, and review diagnosis buckets for workout selection.
 
 No UI behavior was changed in this pass. Practice remains clean while training diagnosis works in the background.
+
+## Latest Verification After Training Rationale UI
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 57 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test, including Session Complete `Why` and Progress `Why this focus` visibility.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5173/`. Dev processes were stopped after verification.
+
+Coverage added:
+
+- Workout rationale explains repeated confusion as contrast work.
+- Workout rationale explains slow correct answers as speed work.
+- Workout rationale explains time-away review as retention review.
+- E2E verifies the rationale is visible outside active playing.
+
+Known limitation:
+
+- The rationale is intentionally concise and may need Robert's real-session feedback to tune wording and priority.
