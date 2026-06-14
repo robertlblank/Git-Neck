@@ -50,6 +50,7 @@ What is working:
 - Latest verification from `/Users/robertblank/Guitar Gear Codex/git-neck` passed for `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e`, and `npm run dev`.
 - Robert's 2026-06-14 real state showed notes were detected, Tiger Mode blocked progress on wrong notes, and right notes progressed. It also showed old timing could count long silence; that was fixed with idle-silence exclusion.
 - Robert's follow-up progress check showed the 11:37 AM session did track: 7 attempts, 5 pass, 2 wrong, 934ms average response. Empty-session clutter was found and fixed.
+- Robert's UI note: after `End session`, Git Neck should not automatically feel like it starts another session. This is deferred and needs product questions before implementation.
 
 What not to touch:
 - Do not reintroduce verbal confirmation.
@@ -63,20 +64,12 @@ What not to touch:
 - Do not count long quiet interruptions as slow attempts.
 
 Exact next task:
-Do a real microphone verification pass:
-1. Run npm run dev.
-2. Grant microphone permission if prompted.
-3. Start Practice.
-4. Click Start listening or press Space.
-5. Play a single clear guitar note into this computer.
-6. Verify the detected note appears.
-7. Verify correct/wrong/slow scoring works automatically.
-8. Test Pause/Resume and confirm paused time does not count.
-9. Leave the app quiet for more than 5 seconds, then play; confirm the quiet gap does not create a slow penalty.
-10. End a session and verify Progress shows one trend entry with attempts.
-11. Click End session again without attempts and verify no empty session trend is added.
-12. Change a setting, restart, and verify persistence.
-13. Update TEST_REPORT.md with the result.
+Ask Robert post-session behavior questions before implementing:
+1. After `End session`, should Practice show a summary screen, go to Progress, or show choices?
+2. Should the mic stay off until Robert explicitly starts another session?
+3. What choices should appear: `Start another session`, `Review progress`, `Quit for now`, `Change session type`?
+4. Should a new session start only when Robert clicks a button, or when he plays again?
+5. Should the ended session summary show accuracy, average response, weak notes, and next suggested focus?
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.
 ```

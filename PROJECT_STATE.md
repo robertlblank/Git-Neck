@@ -70,6 +70,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
 - Curriculum unlock is basic and includes force unlock warning.
 - Fretboard visual is useful but intentionally plain.
+- Post-session UX is not designed yet: after `End session`, the app should not silently feel like it started another session. It should move to a deliberate post-session state or ask what the user wants next.
 
 ## What Is Broken
 
@@ -86,4 +87,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Run `npm run dev`, grant microphone permission, and test real guitar notes across a complete 15-minute session.
+Decide post-session behavior before more training-methodology work. Ask Robert how Git Neck should behave immediately after `End session`, then implement the smallest clear post-session state.
