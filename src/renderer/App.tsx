@@ -5,6 +5,7 @@ import {
   excludeIdleSilenceFromTimer,
   estimatePitchFromTimeDomain,
   IDLE_SILENCE_GRACE_MS,
+  shouldScoreStablePitch,
   updateSessionTuningOffset,
   type PitchDetection
 } from "../domain/audio";
@@ -511,6 +512,7 @@ export function App(): ReactElement {
 
       const buffer = new Float32Array(analyser.fftSize);
       let stablePitchClass: number | null = null;
+      let stablePitchStartedAtMs: number | null = null;
       let stableFrames = 0;
       let silenceStartedAtMs: number | null = scoringStartedAtMsRef.current;
       let idleStatusShown = false;
@@ -558,14 +560,24 @@ export function App(): ReactElement {
             )}).`
           );
 
+          const nowMs = Date.now();
+
           if (classification.pitchClass === stablePitchClass) {
             stableFrames += 1;
           } else {
             stablePitchClass = classification.pitchClass;
+            stablePitchStartedAtMs = nowMs;
             stableFrames = 1;
           }
 
-          if (!lastAttempt && stableFrames >= 5) {
+          if (
+            !lastAttempt &&
+            shouldScoreStablePitch({
+              stableFrames,
+              stablePitchStartedAtMs,
+              nowMs
+            })
+          ) {
             if (classification.acceptedAsTarget) {
               const tuningUpdate = updateSessionTuningOffset({
                 currentOffsetCents: sessionTuningOffsetCents,
@@ -582,6 +594,7 @@ export function App(): ReactElement {
           }
         } else {
           stablePitchClass = null;
+          stablePitchStartedAtMs = null;
           stableFrames = 0;
           silenceStartedAtMs ??= Date.now();
           if (!idleStatusShown && Date.now() - silenceStartedAtMs > IDLE_SILENCE_GRACE_MS) {

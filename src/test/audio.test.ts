@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   classifyFrequencyForTarget,
   describeFrequency,
+  estimatePitchFromTimeDomain,
   excludeIdleSilenceFromTimer,
   frequencyToPitchClass,
+  shouldScoreStablePitch,
   updateSessionTuningOffset
 } from "../domain/audio";
 
@@ -108,4 +110,57 @@ describe("audio pitch helpers", () => {
     expect(timer.scoringStartedAtMs).toBe(21000);
     expect(timer.excludedIdleMs).toBe(20000);
   });
+
+  it("does not score a pitch before it has been stable long enough", () => {
+    expect(
+      shouldScoreStablePitch({
+        stableFrames: 20,
+        stablePitchStartedAtMs: 1000,
+        nowMs: 1190
+      })
+    ).toBe(false);
+  });
+
+  it("does not score a pitch with too few stable frames", () => {
+    expect(
+      shouldScoreStablePitch({
+        stableFrames: 5,
+        stablePitchStartedAtMs: 1000,
+        nowMs: 2000
+      })
+    ).toBe(false);
+  });
+
+  it("scores only after enough frames and stable time", () => {
+    expect(
+      shouldScoreStablePitch({
+        stableFrames: 12,
+        stablePitchStartedAtMs: 1000,
+        nowMs: 1450
+      })
+    ).toBe(true);
+  });
+
+  it("estimates the fundamental of a guitar-like E waveform", () => {
+    const detection = estimatePitchFromTimeDomain(makeGuitarLikeWaveform(82.41), 44100);
+
+    expect(detection?.displayName).toBe("E");
+  });
+
+  it("estimates the fundamental of a guitar-like C waveform with harmonics", () => {
+    const detection = estimatePitchFromTimeDomain(makeGuitarLikeWaveform(261.63), 44100);
+
+    expect(detection?.displayName).toBe("C");
+  });
 });
+
+function makeGuitarLikeWaveform(frequencyHz: number, sampleRate = 44100, length = 4096): Float32Array {
+  return Float32Array.from({ length }, (_, index) => {
+    const t = index / sampleRate;
+    return (
+      0.7 * Math.sin(2 * Math.PI * frequencyHz * t) +
+      0.25 * Math.sin(2 * Math.PI * frequencyHz * 2 * t) +
+      0.12 * Math.sin(2 * Math.PI * frequencyHz * 3 * t)
+    );
+  });
+}

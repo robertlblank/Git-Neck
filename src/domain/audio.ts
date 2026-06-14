@@ -30,6 +30,8 @@ const A4_HZ = 440;
 const A4_MIDI = 69;
 
 export const IDLE_SILENCE_GRACE_MS = 5000;
+export const MIN_STABLE_PITCH_FRAMES = 12;
+export const MIN_STABLE_PITCH_MS = 450;
 
 export function frequencyToMidi(frequencyHz: number): number {
   return Math.round(frequencyToMidiFloat(frequencyHz));
@@ -141,6 +143,23 @@ export function excludeIdleSilenceFromTimer(params: {
   };
 }
 
+export function shouldScoreStablePitch(params: {
+  stableFrames: number;
+  stablePitchStartedAtMs: number | null;
+  nowMs: number;
+  minStableFrames?: number;
+  minStableMs?: number;
+}): boolean {
+  const minStableFrames = params.minStableFrames ?? MIN_STABLE_PITCH_FRAMES;
+  const minStableMs = params.minStableMs ?? MIN_STABLE_PITCH_MS;
+
+  return (
+    params.stablePitchStartedAtMs !== null &&
+    params.stableFrames >= minStableFrames &&
+    params.nowMs - params.stablePitchStartedAtMs >= minStableMs
+  );
+}
+
 export function estimatePitchFromTimeDomain(buffer: Float32Array, sampleRate: number): PitchDetection | null {
   const rms = Math.sqrt(buffer.reduce((sum, sample) => sum + sample * sample, 0) / buffer.length);
   if (rms < 0.015) {
@@ -151,27 +170,65 @@ export function estimatePitchFromTimeDomain(buffer: Float32Array, sampleRate: nu
   const maxFrequency = 1200;
   const minLag = Math.floor(sampleRate / maxFrequency);
   const maxLag = Math.floor(sampleRate / minFrequency);
-  let bestLag = -1;
-  let bestCorrelation = 0;
+  const threshold = 0.14;
+  const difference = new Float32Array(maxLag + 1);
+  const normalizedDifference = new Float32Array(maxLag + 1);
 
   for (let lag = minLag; lag <= maxLag; lag += 1) {
-    let correlation = 0;
+    let sum = 0;
 
     for (let index = 0; index < buffer.length - lag; index += 1) {
-      correlation += buffer[index] * buffer[index + lag];
+      const delta = buffer[index] - buffer[index + lag];
+      sum += delta * delta;
     }
 
-    if (correlation > bestCorrelation) {
-      bestCorrelation = correlation;
+    difference[lag] = sum;
+  }
+
+  let runningSum = 0;
+
+  for (let lag = minLag; lag <= maxLag; lag += 1) {
+    runningSum += difference[lag];
+    normalizedDifference[lag] = runningSum === 0 ? 1 : (difference[lag] * lag) / runningSum;
+  }
+
+  let bestLag = -1;
+  let bestValue = Number.POSITIVE_INFINITY;
+
+  for (let lag = minLag; lag <= maxLag; lag += 1) {
+    if (normalizedDifference[lag] < bestValue) {
       bestLag = lag;
+      bestValue = normalizedDifference[lag];
+    }
+
+    if (normalizedDifference[lag] < threshold) {
+      while (lag + 1 <= maxLag && normalizedDifference[lag + 1] < normalizedDifference[lag]) {
+        lag += 1;
+      }
+      bestLag = lag;
+      bestValue = normalizedDifference[lag];
+      break;
     }
   }
 
-  if (bestLag <= 0 || bestCorrelation < 0.01) {
+  if (bestLag <= 0 || bestValue > 0.28) {
     return null;
   }
 
-  return describeFrequency(sampleRate / bestLag);
+  return describeFrequency(sampleRate / refineLagWithParabolicInterpolation(normalizedDifference, bestLag));
+}
+
+function refineLagWithParabolicInterpolation(values: Float32Array, lag: number): number {
+  const previous = values[lag - 1];
+  const current = values[lag];
+  const next = values[lag + 1];
+  const denominator = previous - 2 * current + next;
+
+  if (!Number.isFinite(denominator) || denominator === 0) {
+    return lag;
+  }
+
+  return lag + (previous - next) / (2 * denominator);
 }
 
 function nearestMidiForPitchClass(midi: number, pitchClass: number): number {

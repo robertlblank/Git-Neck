@@ -13,6 +13,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Note-only and guided-string note prompts
 - Microphone listening through the computer
 - Simple monophonic pitch-class detection
+- Stable-note scoring gate to avoid counting pick attack transients as attempts
 - Conservative session-relative tuning tolerance
 - Deterministic scoring and canned coaching
 - Continuous microphone flow during Practice
@@ -104,8 +105,8 @@ Paused time does not count toward the prompt response timer or active session ti
 
 ## Known Limitations
 
-- Pitch detection is intentionally simple and monophonic.
-- Loud rooms, chords, low input gain, or sustained overtones may confuse detection.
+- Pitch detection is intentionally simple and monophonic, but now waits for stable pitch before scoring.
+- Loud rooms, chords, low input gain, attack noise, or sustained overtones may still confuse detection.
 - Normal microphone input validates pitch, not the physical fret or string.
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
 - Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
@@ -122,7 +123,7 @@ Paused time does not count toward the prompt response timer or active session ti
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 57 tests.
+- `npm test`: passed, 62 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.

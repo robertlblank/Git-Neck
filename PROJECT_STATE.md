@@ -46,6 +46,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Empty sessions are not saved to Progress when `End session` is clicked without attempts.
 - `End session` now shows a deliberate Session Complete state with attempts, accuracy, average response, active duration, misses, slow answers, next focus, and choices to start another session, review progress, or change session type.
 - Conservative session tuning offset learns slowly from accepted target notes and resets each session.
+- Microphone scoring now waits for a pitch to remain stable before submitting an attempt, so pick attack transients are less likely to count as wrong notes.
+- Pitch estimation now uses a more conservative YIN-style detector instead of the earlier rough autocorrelation peak picker.
 - Daily Workout uses curriculum focus groups instead of the whole level at once: natural notes start with `C, G, D`, then move to `A, E`, then `F, B`; sharps/flats are introduced in small groups.
 - Daily Workout now uses training diagnosis inside the available focus set: repeated confusions, weak accuracy, slow recall, and retention-due notes can bias the next prompt.
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
@@ -72,10 +74,12 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - App state schema is now version 3 to migrate old Tiger Mode defaults and add session status.
 - Real state inspection on 2026-06-14 showed Tiger Mode worked: misses stayed on C/F/B/D until the target was hit. It also showed long silent gaps could previously inflate response time, which is now fixed.
 - Real state inspection after Robert's progress check on 2026-06-14 showed Progress did track the ended 11:37 AM session: 7 attempts, 5 pass, 2 wrong, 934ms average response. It also showed empty sessions could clutter Progress; empty-session saving is now fixed.
+- Real state inspection after Robert reported false misses on 2026-06-14 showed many wrong notes were scored in about 159-260ms, often as D#/Eb. These were treated as false negatives from attack/transient detection, not user misses.
 
 ## What Is Partial
 
 - Microphone pitch detection is intentionally simple monophonic autocorrelation.
+- Microphone pitch detection is still intentionally simple and monophonic, but now uses a more conservative YIN-style pitch-period estimate.
 - Audio validates heard pitch, not physical fret/string.
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
 - Level unlock is basic and includes force unlock warning.
@@ -94,10 +98,10 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Real guitar accuracy through Robert's actual input setup.
 - macOS microphone permission behavior on Robert's machine.
 - A complete ended 15-minute session with actual guitar has not been completed yet.
-- Whether the conservative tuning tolerance needs adjustment after real playing.
+- Whether the conservative tuning tolerance and stable-note gate need adjustment after Robert retests with guitar.
 - Whether idle-silence forgiveness feels right in Robert's room after another real pass.
 - Whether guided-string prompts feel useful without true string detection.
 
 ## Next Recommended Action
 
-Next product step should let Robert test a real practice run and verify that the new training rationale feels accurate without cluttering the active Practice screen.
+Next product step should let Robert retest a real mic practice run and verify whether false misses are reduced after the stable-note gate and YIN-style estimator.

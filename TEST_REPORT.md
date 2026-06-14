@@ -404,3 +404,44 @@ Coverage added:
 Known limitation:
 
 - The rationale is intentionally concise and may need Robert's real-session feedback to tune wording and priority.
+
+## Latest Verification After False-Miss Audio Fix
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 62 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was occupied. Dev processes were stopped after verification.
+
+Finding:
+
+- Robert reported the app marked correct played notes wrong.
+- Real state inspection showed many recent wrong attempts were scored in roughly 159-260ms and often heard as D#/Eb, which is consistent with scoring pick attack/noise too early rather than real missed notes.
+
+Action taken:
+
+- Added a tested stable-pitch scoring gate: a note must remain stable for enough frames and at least 450ms before scoring.
+- Replaced the rough autocorrelation peak picker with a more conservative YIN-style pitch-period estimator.
+- Added tests for stable scoring gates and guitar-like E/C waveforms with harmonics.
+
+Known limitation:
+
+- This should reduce false negatives, but the real proof is Robert retesting through the Mac microphone with guitar.
