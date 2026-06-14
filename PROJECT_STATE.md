@@ -49,7 +49,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
-- Pure domain modules for notes, fretboard, audio helpers, sessions, drills, scoring, coaching, mastery, curriculum, and workout.
+- Pure domain modules for notes, fretboard, audio helpers, sessions, drills, scoring, coaching, mastery, curriculum, workout, and training diagnosis.
+- Training diagnosis can assess pitch-class, string-pitch, and repeated-confusion skills as `unseen`, `introduced`, `weak_accuracy`, `slow_recall`, `repeated_confusion`, `retention_failed`, `accurate`, or `automatic`, then prescribe active/review/contrast/expand practice.
 - Local JSON persistence through Electron main/preload IPC.
 - Unit tests and Electron UI workflow tests pass.
 - Project folder is `/Users/robertblank/Guitar Gear Codex/git-neck`.
@@ -77,7 +78,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
 - Level unlock is basic and includes force unlock warning.
 - Focus-group advancement is deliberately simple: a group advances when every note in it has at least one attempt and a score of 55+.
-- Training methodology is researched but not fully implemented. The app still needs a first-class `training` domain module with skill atoms, diagnosis, prescription, and retention handling.
+- Training methodology is researched and the first pure `training` domain module exists, but workout prompt selection does not use it yet.
+- Speed and retention are currently represented as diagnosis states over pitch/string skills, not as separate standalone skill IDs.
 - Fretboard visual is useful but intentionally plain.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
@@ -96,4 +98,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Next product step should implement the first pure `training` domain module from `CURRICULUM_RESEARCH.md`: skill IDs, diagnosis states, and prescription rules before changing more prompt behavior.
+Next product step should wire the pure `training` diagnosis into Daily Workout prompt selection so weak accuracy, slow recall, repeated confusions, and retention review change what the user sees.

@@ -32,6 +32,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Basic mastery tracking and workout prompt weighting
 - Small focus-group progression for note mastery: naturals begin with `C, G, D`, then `A, E`, then `F, B`; sharps/flats enter in small groups
 - Curriculum research brief in `CURRICULUM_RESEARCH.md`
+- Pure training diagnosis module for skill states, repeated confusions, slow recall, retention review, and practice prescriptions
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
 - Debug-only simulated note input
@@ -113,12 +114,13 @@ Paused time does not count toward the prompt response timer or active session ti
 - Simulated input exists only under Settings / Debug.
 - Persistence is a single local JSON state file.
 - Usage tracking is local-only; there is no analytics backend or cloud telemetry.
+- Training diagnosis is tested but not yet wired into Daily Workout prompt selection.
 - `npm install` reported dependency audit findings from the installed third-party tree.
 
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 42 tests.
+- `npm test`: passed, 50 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.

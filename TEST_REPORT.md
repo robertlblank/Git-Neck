@@ -289,3 +289,46 @@ Covered:
 - guitar-specific constraints around registration, tab, and string/fret ambiguity
 
 No app behavior was changed in this research pass.
+
+## Latest Verification After Training Diagnosis Module
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 50 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test when run with approved GUI launch permissions.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5173/`. Dev processes were stopped after verification.
+
+Coverage added:
+
+- Stable training skill IDs for pitch-class and string-pitch skills.
+- Unseen pitch classes are active practice targets.
+- Weak note accuracy is diagnosed separately from slow recall.
+- Slow correct recall is treated as correct pitch knowledge but not automatic mastery.
+- Five fast clean passes diagnose automatic recall and prescribe expansion.
+- Repeated same-note confusion prescribes contrast practice.
+- Retention review is due after a long delay.
+- String-specific recall is assessed separately from global pitch-class recall.
+
+No UI behavior was changed in this pass. The training module is pure domain logic and is not yet wired into Daily Workout selection.
+
+Note:
+
+- A first sandboxed `npm run test:e2e` attempt hung before the E2E script printed its first step, during Electron launch. The stuck npm/Node/Electron test PIDs were terminated. Rerunning the same command with explicit GUI-launch permission passed.

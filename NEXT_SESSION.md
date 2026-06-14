@@ -20,6 +20,7 @@ Read:
 - src/domain/audio.ts
 - src/domain/sessions.ts
 - src/domain/scoring.ts
+- src/domain/training.ts
 - CURRICULUM_RESEARCH.md
 - src/renderer/App.tsx
 - scripts/e2e-workflows.mjs
@@ -47,13 +48,14 @@ What is working:
 - Practice can be structured as 1 x 15, 3 x 5, or 5 x 3.
 - Daily Workout now uses small curriculum focus groups instead of the whole level at once. Naturals start with `C, G, D`, then `A, E`, then `F, B`; sharps/flats enter in small groups.
 - `CURRICULUM_RESEARCH.md` now captures the research-backed curriculum direction: deliberate practice, mastery learning, retrieval/spaced practice, interleaving, tutoring/student models, modern SRL/gamification findings, app retention risks, and guitar-specific constraints.
+- `src/domain/training.ts` now contains the first pure training diagnosis layer. It assesses pitch-class, string-pitch, and confusion-pair skills; separates weak accuracy from slow recall; detects repeated confusions and retention review; and returns active/review/contrast/expand prescriptions.
 - Completed session trends are shown in Progress.
 - Sessions are persisted while active, marked completed on `End session`, and recovered as interrupted if the app stops mid-session.
 - Empty sessions are not saved, so Progress should only show sessions with attempts.
 - Ending a session now stops practice and shows a Session Complete summary with attempts, accuracy, average response, duration, misses, slow answers, next focus, and choices for `Start another session`, `Review progress`, and `Change session type`.
 - Simulated input exists only in Settings / Debug.
 - Verbal confirmation and talking to the app are no longer part of the product.
-- Tests currently pass: 42 unit tests plus the Electron E2E workflow.
+- Tests currently pass: 50 unit tests plus the Electron E2E workflow from the prior UI build.
 - Latest verification from `/Users/robertblank/Guitar Gear Codex/git-neck` passed for `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e`, and `npm run dev`.
 - Robert's 2026-06-14 real state showed notes were detected, Tiger Mode blocked progress on wrong notes, and right notes progressed. It also showed old timing could count long silence; that was fixed with idle-silence exclusion.
 - Robert's follow-up progress check showed the 11:37 AM session did track: 7 attempts, 5 pass, 2 wrong, 934ms average response. Empty-session clutter was found and fixed.
@@ -73,12 +75,13 @@ What not to touch:
 - Do not add backend/cloud analytics unless Robert explicitly changes the local-only decision. Usage tracking is currently local-first.
 
 Exact next task:
-Implement the first pure `training` domain module from `CURRICULUM_RESEARCH.md`:
-1. Define skill IDs for pitch-class, string-pitch, confusion-pair, speed, and retention targets.
-2. Add diagnosis states: unseen, introduced, learning, accurate, automatic, retained, weak_accuracy, slow_recall, repeated_confusion, retention_failed, under_sampled.
-3. Add prescription rules for current weak skills, spaced review, and expansion.
-4. Add unit tests before wiring it into prompt selection.
-5. Do not change guided-string prompt behavior until this module exists.
+Wire the first pure `training` diagnosis layer into Daily Workout prompt selection:
+1. Read `src/domain/training.ts`, `src/domain/workout.ts`, `src/domain/curriculum.ts`, and `src/test/mastery-workout.test.ts`.
+2. Keep the implementation simple: use training assessments to bias Daily Workout toward weak accuracy, slow recall, repeated confusions, and retention review.
+3. Preserve the existing small focus-group behavior; training diagnosis should refine selection inside the current focus, not explode scope.
+4. Add unit tests that prove weak/slow/repeated-confusion/retention diagnoses affect prompt choice.
+5. Do not change guided-string prompt behavior beyond honest pitch-only scoring.
+6. Do not add a new UI until the domain selection behavior is tested.
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.
 ```
