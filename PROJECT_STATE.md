@@ -33,6 +33,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Practice shows a compact prompt-adjacent result badge: `Correct`, `Missed`, `Too slow`, or `Locked until clean`, including the heard note when available.
+- Practice shows the active curriculum focus set in the session strip.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
 - Tiger Mode is default-on and enforces the same prompt after a miss or too-slow answer until the user gets it right.
 - Pause/resume excludes break time from response scoring and active session time.
@@ -43,6 +44,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Empty sessions are not saved to Progress when `End session` is clicked without attempts.
 - `End session` now shows a deliberate Session Complete state with attempts, accuracy, average response, active duration, misses, slow answers, next focus, and choices to start another session, review progress, or change session type.
 - Conservative session tuning offset learns slowly from accepted target notes and resets each session.
+- Daily Workout uses curriculum focus groups instead of the whole level at once: natural notes start with `C, G, D`, then move to `A, E`, then `F, B`; sharps/flats are introduced in small groups.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
 - Pure domain modules for notes, fretboard, audio helpers, sessions, drills, scoring, coaching, mastery, curriculum, and workout.
@@ -71,7 +73,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Microphone pitch detection is intentionally simple monophonic autocorrelation.
 - Audio validates heard pitch, not physical fret/string.
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
-- Curriculum unlock is basic and includes force unlock warning.
+- Level unlock is basic and includes force unlock warning.
+- Focus-group advancement is deliberately simple: a group advances when every note in it has at least one attempt and a score of 55+.
 - Fretboard visual is useful but intentionally plain.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
@@ -90,4 +93,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Next product step should be training-methodology/content depth: make the app teach the neck deliberately instead of only calling different notes.
+Next product step should be string-specific methodology: decide how guided-string prompts should enter practice without claiming automatic string detection.

@@ -67,6 +67,8 @@ await check("session controls and pause work", async () => {
   await assertVisible("Session");
   await assertVisible("Segment");
   await assertVisible("Tuning");
+  await assertVisible("Focus");
+  await assertVisible("C, G, D");
   await page.getByRole("button", { name: "Pause" }).click();
   await assertVisible("Paused. Timer stopped.");
   await page.getByRole("button", { name: "Resume" }).click();

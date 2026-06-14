@@ -34,7 +34,7 @@ import {
   SESSION_STRUCTURES
 } from "../domain/sessions";
 import type { AppState, Attempt, AttemptSource, DrillMode, DrillPrompt, Settings } from "../domain/types";
-import { selectNextPrompt, getNextWorkoutFocus } from "../domain/workout";
+import { getNextWorkoutFocus, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
 import { createDefaultAppState, normalizeAppState } from "../persistence/schema";
 
 type Area = "practice" | "progress" | "settings";
@@ -677,6 +677,8 @@ export function App(): ReactElement {
 
   const level = getCurrentLevel(appState.currentLevel);
   const recentAttempts = appState.attempts.slice(-8).reverse();
+  const workoutPlan = getWorkoutPlan(appState.mastery, appState.currentLevel);
+  const activeFocusSet = workoutPlan.activePitchClasses.map((pitchClass) => getDisplayName(pitchClass)).join(", ");
 
   return (
     <main className="app-shell">
@@ -701,6 +703,7 @@ export function App(): ReactElement {
       {area === "practice" && (
         <PracticeArea
           appState={appState}
+          activeFocusSet={activeFocusSet}
           elapsedMs={elapsedMs}
           feedback={feedback}
           lastAttempt={lastAttempt}
@@ -739,7 +742,7 @@ export function App(): ReactElement {
         <ProgressArea
           appState={appState}
           currentLevelName={level.name}
-          nextWorkoutFocus={getNextWorkoutFocus(appState.mastery)}
+          nextWorkoutFocus={getNextWorkoutFocus(appState.mastery, appState.currentLevel)}
           recentAttempts={recentAttempts}
           sessionTrends={getSessionTrends(appState)}
         />
@@ -767,6 +770,7 @@ export function App(): ReactElement {
 }
 
 function PracticeArea(props: {
+  activeFocusSet: string;
   appState: AppState;
   audioStatus: string;
   detectedPitch: PitchDetection | null;
@@ -859,6 +863,11 @@ function PracticeArea(props: {
             <p className="eyebrow">Tuning</p>
             <strong>{formatCents(props.sessionTuningOffsetCents)}</strong>
             <span>{props.sessionTuningSamples} samples</span>
+          </div>
+          <div>
+            <p className="eyebrow">Focus</p>
+            <strong>{props.activeFocusSet}</strong>
+            <span>Current set</span>
           </div>
         </div>
         <p className="timer">{props.paused ? "Paused" : `${Math.round(props.elapsedMs / 100) / 10}s`}</p>

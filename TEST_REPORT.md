@@ -235,3 +235,36 @@ Coverage added:
 Note:
 
 - An initial E2E run failed because it launched the previous built `out/` bundle before `npm run build` had been rerun. After rebuilding, the same workflow passed.
+
+## Latest Verification After Curriculum Focus Groups
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 7 files / 42 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5173/`. Dev processes were stopped after verification.
+
+Coverage added:
+
+- Daily Workout starts with the first curriculum focus group.
+- Daily Workout advances to the next focus group after the current group is ready.
+- Next workout focus names the active set and weakest notes.
+- Practice UI shows the current focus set (`C, G, D`) in the session strip.

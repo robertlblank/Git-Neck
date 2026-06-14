@@ -24,6 +24,7 @@
 - Practice can be structured as `1 x 15`, `3 x 5`, or `5 x 3`.
 - Ending a session should stop practice and show a deliberate Session Complete state; a new session starts only from an explicit user choice.
 - Correct/miss/slow feedback should appear near the displayed prompt as a compact badge; the side coach is for secondary text.
+- Daily Workout should teach small focus groups before broad recall; Free/Test can stay broader within the current level.
 - Simulated input is debug-only and must not be the primary practice flow.
 - Guided-string prompts verify note correctness only.
 - Do not claim automatic string detection.

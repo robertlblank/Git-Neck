@@ -18,6 +18,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Continuous microphone flow during Practice
 - Background scoring that stays out of the way during Practice
 - Compact prompt-adjacent feedback showing correct/missed/too-slow/locked results while practicing
+- Curriculum focus sets in Daily Workout, visible in Practice
 - Auto-advance after a scored note
 - Tiger Mode default-on: misses and too-slow hits repeat the same prompt until clean
 - Idle-silence forgiveness so quiet breaks over 5 seconds are ignored by the response timer
@@ -29,6 +30,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Empty-session suppression so Progress does not get zero-attempt rows
 - Session Complete summary after ending a practice window, with explicit next choices instead of silently starting over
 - Basic mastery tracking and workout prompt weighting
+- Small focus-group progression for note mastery: naturals begin with `C, G, D`, then `A, E`, then `F, B`; sharps/flats enter in small groups
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
 - Debug-only simulated note input
@@ -115,7 +117,7 @@ Paused time does not count toward the prompt response timer or active session ti
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 39 tests.
+- `npm test`: passed, 42 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.

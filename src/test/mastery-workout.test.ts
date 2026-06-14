@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createDrillPrompt } from "../domain/drills";
 import { createInitialMasteryState, updateMastery } from "../domain/mastery";
 import { scoreAttempt } from "../domain/scoring";
-import { selectNextPrompt } from "../domain/workout";
+import { getNextWorkoutFocus, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
 
 function attemptFor(targetPitchClass: number, submittedPitchClass: number, responseMs = 900) {
   const prompt = createDrillPrompt({
@@ -55,5 +55,42 @@ describe("mastery and workout", () => {
     });
 
     expect(prompt.targetPitchClass).toBe(0);
+  });
+
+  it("daily workout starts with the first curriculum focus group", () => {
+    const mastery = createInitialMasteryState();
+
+    const prompts = Array.from({ length: 12 }, (_, index) =>
+      selectNextPrompt({
+        mastery,
+        currentLevel: 1,
+        nowMs: 3000 + index,
+        mode: "daily",
+        seed: index + 1
+      })
+    );
+
+    expect(new Set(prompts.map((prompt) => prompt.targetPitchClass))).toEqual(new Set([0, 2, 7]));
+  });
+
+  it("daily workout advances to the next focus group after the current group is ready", () => {
+    const mastery = createInitialMasteryState();
+    [0, 2, 7].forEach((pitchClass) => {
+      mastery.byPitchClass[String(pitchClass)].attempts = 1;
+      mastery.byPitchClass[String(pitchClass)].score = 60;
+    });
+
+    const plan = getWorkoutPlan(mastery, 1);
+
+    expect(plan.activePitchClasses).toEqual([9, 4]);
+    expect(plan.reviewPitchClasses).toEqual([0, 7, 2]);
+    expect(plan.availablePitchClasses).toEqual([0, 7, 2, 9, 4]);
+  });
+
+  it("next workout focus names the active set and weakest review notes", () => {
+    const mastery = createInitialMasteryState();
+    mastery.byPitchClass["0"].score = 5;
+
+    expect(getNextWorkoutFocus(mastery, 1)).toBe("Current set: C, G, D. Weakest: C, D, G");
   });
 });
