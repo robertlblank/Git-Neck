@@ -113,14 +113,19 @@ await check("settings and debug simulated scoring work", async () => {
   await scoreDebugNoteAndWaitForAttempt(wrongNote);
 
   await page.getByRole("button", { name: "Practice" }).click();
+  await assertPromptVisible("Missed");
+  await assertPromptVisible(`Heard ${wrongNote}`);
   await assertVisible("Locked");
   await assertVisible("Tiger Mode is locked on this note until you get it right.");
   await page.getByRole("button", { name: "Repeat" }).click();
+  await assertPromptVisible("Locked until clean");
 
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await scoreDebugNoteAndWaitForAttempt(targetNote);
 
   await page.getByRole("button", { name: "Practice" }).click();
+  await assertPromptVisible("Correct");
+  await assertPromptVisible(`Heard ${targetNote}`);
   await page.getByRole("button", { name: "Next" }).waitFor({ timeout: 5000 });
 });
 
@@ -188,6 +193,10 @@ if (failures.length > 0) {
 
 async function assertVisible(textOrRegex) {
   await page.getByText(textOrRegex).first().waitFor({ timeout: 5000 });
+}
+
+async function assertPromptVisible(textOrRegex) {
+  await page.locator(".prompt-panel").getByText(textOrRegex).first().waitFor({ timeout: 5000 });
 }
 
 async function scoreDebugNoteAndWaitForAttempt(noteName) {

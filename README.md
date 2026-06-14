@@ -17,6 +17,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Deterministic scoring and canned coaching
 - Continuous microphone flow during Practice
 - Background scoring that stays out of the way during Practice
+- Compact prompt-adjacent feedback showing correct/missed/too-slow/locked results while practicing
 - Auto-advance after a scored note
 - Tiger Mode default-on: misses and too-slow hits repeat the same prompt until clean
 - Idle-silence forgiveness so quiet breaks over 5 seconds are ignored by the response timer
@@ -71,7 +72,7 @@ npm run test:e2e
 2. Grant microphone permission if macOS asks.
 3. Play one clear guitar note into this computer's input.
 4. The app detects a stable pitch class, applies the current session's conservative tuning offset, and scores automatically.
-5. Git Neck briefly shows coaching feedback, advances automatically after a pass, or repeats the same prompt after a miss/slow hit.
+5. Git Neck shows the immediate result next to the prompt, advances automatically after a pass, or repeats the same prompt after a miss/slow hit.
 6. Use `Pause` when you stop for a text or interruption; quiet idle gaps over 5 seconds are also excluded from response timing.
 7. Use `Turn mic on`, `Repeat`, `Next`, or `End session` as manual overrides.
 8. Ending a session stops practice and shows a Session Complete summary. Start another session only when you explicitly choose to.

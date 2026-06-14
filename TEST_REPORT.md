@@ -199,3 +199,39 @@ Notes:
 - First E2E run during this change exposed a real state-timing risk around quickly ending a debug-scored session. App/session refs were added so scoring and end-session bookkeeping remain synchronized.
 - A later E2E failure was selector ambiguity between the nav `Progress` button and the new `Review progress` action. The test now clicks the exact nav button.
 - Local shell startup still prints `brew shellenv.sh` errors before commands. This is outside the repo; project commands continue and pass.
+
+## Latest Verification After Prompt-Adjacent Feedback
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 7 files / 39 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5173/`. Dev processes were stopped after verification.
+
+Coverage added:
+
+- Wrong debug-scored note shows `Missed` and `Heard <note>` inside the prompt panel.
+- Repeating a Tiger Mode miss shows `Locked until clean` inside the prompt panel.
+- Correct retry shows `Correct` and `Heard <note>` inside the prompt panel.
+
+Note:
+
+- An initial E2E run failed because it launched the previous built `out/` bundle before `npm run build` had been rerun. After rebuilding, the same workflow passed.

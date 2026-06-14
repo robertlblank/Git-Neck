@@ -55,6 +55,12 @@ type PostSessionSummary = {
   weakestNotes: string[];
 };
 
+type PromptResult = {
+  tone: "correct" | "miss" | "slow" | "locked";
+  label: string;
+  detail: string;
+};
+
 export function App(): ReactElement {
   const [area, setArea] = useState<Area>("practice");
   const [appState, setAppState] = useState<AppState>(() => createDefaultAppState());
@@ -799,6 +805,7 @@ function PracticeArea(props: {
   const sessionTargetMs = getSessionTargetMs(props.appState.settings.sessionStructure);
   const currentSegment = getCurrentSegment(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const segmentRemainingMs = getSessionSegmentRemainingMs(props.sessionActiveMs, props.appState.settings.sessionStructure);
+  const promptResult = getPromptResult(props.lastAttempt, props.tigerLocked);
 
   if (props.postSessionSummary) {
     return (
@@ -855,7 +862,15 @@ function PracticeArea(props: {
           </div>
         </div>
         <p className="timer">{props.paused ? "Paused" : `${Math.round(props.elapsedMs / 100) / 10}s`}</p>
-        <h2>{renderPrompt(props.prompt)}</h2>
+        <div className="prompt-target">
+          <h2>{renderPrompt(props.prompt)}</h2>
+          {promptResult && (
+            <div className={`prompt-result ${promptResult.tone}`} aria-live="polite">
+              <strong>{promptResult.label}</strong>
+              <span>{promptResult.detail}</span>
+            </div>
+          )}
+        </div>
         <div className="actions">
           <button
             className={props.listening ? "confirmed" : "primary"}
@@ -1230,6 +1245,42 @@ function buildPostSessionSummary(params: {
       .slice(0, 3)
       .map(([pitchClass]) => getDisplayName(pitchClass))
   };
+}
+
+function getPromptResult(attempt: Attempt | null, tigerLocked: boolean): PromptResult | null {
+  if (attempt) {
+    if (attempt.result === "pass") {
+      return {
+        tone: "correct",
+        label: "Correct",
+        detail: `Heard ${attempt.submittedDisplayName ?? "-"}`
+      };
+    }
+
+    if (attempt.result === "too_slow") {
+      return {
+        tone: "slow",
+        label: "Too slow",
+        detail: `Heard ${attempt.submittedDisplayName ?? "-"}`
+      };
+    }
+
+    return {
+      tone: "miss",
+      label: "Missed",
+      detail: `Heard ${attempt.submittedDisplayName ?? "-"}`
+    };
+  }
+
+  if (tigerLocked) {
+    return {
+      tone: "locked",
+      label: "Locked until clean",
+      detail: "Same note. Get it right."
+    };
+  }
+
+  return null;
 }
 
 function formatDuration(durationMs: number): string {

@@ -23,6 +23,7 @@
 - Paused time does not count against response time or active session time.
 - Practice can be structured as `1 x 15`, `3 x 5`, or `5 x 3`.
 - Ending a session should stop practice and show a deliberate Session Complete state; a new session starts only from an explicit user choice.
+- Correct/miss/slow feedback should appear near the displayed prompt as a compact badge; the side coach is for secondary text.
 - Simulated input is debug-only and must not be the primary practice flow.
 - Guided-string prompts verify note correctness only.
 - Do not claim automatic string detection.

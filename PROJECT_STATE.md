@@ -32,6 +32,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Practice area with prompt, start/stop listening, microphone status, detected note display, scoring, feedback, streak, timer, repeat, next, end session, and fretboard reveal.
 - Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
+- Practice shows a compact prompt-adjacent result badge: `Correct`, `Missed`, `Too slow`, or `Locked until clean`, including the heard note when available.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
 - Tiger Mode is default-on and enforces the same prompt after a miss or too-slow answer until the user gets it right.
 - Pause/resume excludes break time from response scoring and active session time.
@@ -72,7 +73,6 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
 - Curriculum unlock is basic and includes force unlock warning.
 - Fretboard visual is useful but intentionally plain.
-- Practice result placement is not designed yet: Robert wants miss/correct feedback near the displayed target note so his eyes do not have to dart between the prompt and the side coach panel.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
 ## What Is Broken
@@ -90,4 +90,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Next product step should be prompt-proximate result feedback and then training-methodology/content depth. Ask Robert what “right/wrong near the note” should look like before implementing visual placement.
+Next product step should be training-methodology/content depth: make the app teach the neck deliberately instead of only calling different notes.

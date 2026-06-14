@@ -36,6 +36,7 @@ What is working:
 - Practice uses Start listening as the primary action.
 - The app requests microphone input, estimates one monophonic pitch, applies conservative session-relative tuning tolerance, scores automatically, updates mastery, and shows feedback.
 - Practice hides detailed scoring widgets; scoring happens in the background and trends live in Progress.
+- Practice shows immediate correct/miss/too-slow/locked feedback next to the displayed prompt, including `Heard <note>` when available.
 - Correct answers auto-advance; wrong/slow answers repeat the prompt.
 - Tiger Mode is default-on and locks missed/too-slow prompts until a clean pass; old v1 local state migrates to this default.
 - The microphone starts/restarts automatically between prompts; per-note clicking is not part of the intended flow.
@@ -53,7 +54,7 @@ What is working:
 - Robert's 2026-06-14 real state showed notes were detected, Tiger Mode blocked progress on wrong notes, and right notes progressed. It also showed old timing could count long silence; that was fixed with idle-silence exclusion.
 - Robert's follow-up progress check showed the 11:37 AM session did track: 7 attempts, 5 pass, 2 wrong, 934ms average response. Empty-session clutter was found and fixed.
 - Robert's UI note: after `End session`, Git Neck should not automatically feel like it starts another session. Implemented as a Session Complete state with explicit choices.
-- Robert's UI note: right/wrong feedback should appear close to the displayed target note, not only in the side coach panel, so his eyes do not have to jump while practicing. This is deferred and needs product questions before implementation.
+- Robert's UI note: right/wrong feedback should appear close to the displayed target note, not only in the side coach panel. Implemented as a compact prompt-adjacent result badge.
 
 What not to touch:
 - Do not reintroduce verbal confirmation.
@@ -68,13 +69,7 @@ What not to touch:
 - Do not add backend/cloud analytics unless Robert explicitly changes the local-only decision. Usage tracking is currently local-first.
 
 Exact next task:
-Ask Robert prompt-feedback placement questions before implementing:
-1. Should the target note itself change color on result, or should a compact `Correct` / `Missed` badge appear beside it?
-2. Should the detected note appear next to the target note, e.g. `Target: E | Heard: A`?
-3. Should wrong feedback stay visible until the corrected retry, or fade quickly?
-4. Should side coach remain for extra text while the immediate result moves next to the prompt?
-
-Then continue into training-methodology/content depth:
+Continue into training-methodology/content depth:
 1. Decide when to use note-only prompts vs guided-string prompts.
 2. Add a simple level-specific prompt mix that teaches the neck deliberately instead of calling random notes forever.
 3. Keep the loop hands-free and Tiger Mode strict by default.
