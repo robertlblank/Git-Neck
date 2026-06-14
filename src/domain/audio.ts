@@ -21,8 +21,15 @@ export type TuningOffsetUpdate = {
   acceptedObservation: boolean;
 };
 
+export type IdleAdjustedTimer = {
+  scoringStartedAtMs: number;
+  excludedIdleMs: number;
+};
+
 const A4_HZ = 440;
 const A4_MIDI = 69;
+
+export const IDLE_SILENCE_GRACE_MS = 5000;
 
 export function frequencyToMidi(frequencyHz: number): number {
   return Math.round(frequencyToMidiFloat(frequencyHz));
@@ -109,6 +116,28 @@ export function updateSessionTuningOffset(params: {
     tuningOffsetCents: Math.round(clamp(nextOffset, -maxSessionOffsetCents, maxSessionOffsetCents)),
     sampleCount: params.sampleCount + 1,
     acceptedObservation: true
+  };
+}
+
+export function excludeIdleSilenceFromTimer(params: {
+  scoringStartedAtMs: number;
+  silenceStartedAtMs: number;
+  resumedAtMs: number;
+  idleGraceMs?: number;
+}): IdleAdjustedTimer {
+  const idleGraceMs = params.idleGraceMs ?? IDLE_SILENCE_GRACE_MS;
+  const silentMs = Math.max(0, params.resumedAtMs - params.silenceStartedAtMs);
+
+  if (silentMs <= idleGraceMs) {
+    return {
+      scoringStartedAtMs: params.scoringStartedAtMs,
+      excludedIdleMs: 0
+    };
+  }
+
+  return {
+    scoringStartedAtMs: params.scoringStartedAtMs + silentMs,
+    excludedIdleMs: silentMs
   };
 }
 

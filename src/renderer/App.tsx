@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import {
   classifyFrequencyForTarget,
+  excludeIdleSilenceFromTimer,
   estimatePitchFromTimeDomain,
+  IDLE_SILENCE_GRACE_MS,
   updateSessionTuningOffset,
   type PitchDetection
 } from "../domain/audio";
@@ -339,12 +341,33 @@ export function App(): ReactElement {
       const buffer = new Float32Array(analyser.fftSize);
       let stablePitchClass: number | null = null;
       let stableFrames = 0;
+      let silenceStartedAtMs: number | null = scoringStartedAtMsRef.current;
+      let idleStatusShown = false;
 
       const tick = (): void => {
         analyser.getFloatTimeDomainData(buffer);
         const detection = estimatePitchFromTimeDomain(buffer, audioContext.sampleRate);
 
         if (detection) {
+          if (silenceStartedAtMs !== null) {
+            const idleAdjustment = excludeIdleSilenceFromTimer({
+              scoringStartedAtMs: scoringStartedAtMsRef.current,
+              silenceStartedAtMs,
+              resumedAtMs: Date.now()
+            });
+
+            if (idleAdjustment.excludedIdleMs > 0) {
+              scoringStartedAtMsRef.current = idleAdjustment.scoringStartedAtMs;
+              setPrompt((currentPrompt) => ({
+                ...currentPrompt,
+                createdAtMs: currentPrompt.createdAtMs + idleAdjustment.excludedIdleMs
+              }));
+            }
+
+            silenceStartedAtMs = null;
+            idleStatusShown = false;
+          }
+
           const classification = classifyFrequencyForTarget({
             frequencyHz: detection.frequencyHz,
             targetPitchClass: prompt.targetPitchClass,
@@ -389,6 +412,11 @@ export function App(): ReactElement {
         } else {
           stablePitchClass = null;
           stableFrames = 0;
+          silenceStartedAtMs ??= Date.now();
+          if (!idleStatusShown && Date.now() - silenceStartedAtMs > IDLE_SILENCE_GRACE_MS) {
+            setAudioStatus("Idle silence. Break time will be ignored.");
+            idleStatusShown = true;
+          }
         }
 
         frameRef.current = requestAnimationFrame(tick);

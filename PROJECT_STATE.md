@@ -35,6 +35,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
 - Tiger Mode is default-on and enforces the same prompt after a miss or too-slow answer until the user gets it right.
 - Pause/resume excludes break time from response scoring and active session time.
+- Idle silence over 5 seconds is excluded from response timing so quiet interruptions do not become slow attempts.
 - Session structures support `1 x 15`, `3 x 5`, and `5 x 3`.
 - Completed session trends show session accuracy, average response time, attempt count, and active duration.
 - Conservative session tuning offset learns slowly from accepted target notes and resets each session.
@@ -58,6 +59,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Normal microphone audio can validate pitch class, but cannot prove the physical fret or string.
 - Session tuning offset is intentionally conservative: it learns slowly, ignores large observations, clamps the offset, and resets each session.
 - App state schema is now version 2 to migrate old Tiger Mode defaults.
+- Real state inspection on 2026-06-14 showed Tiger Mode worked: misses stayed on C/F/B/D until the target was hit. It also showed long silent gaps could previously inflate response time, which is now fixed.
 
 ## What Is Partial
 
@@ -75,8 +77,9 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 - Real guitar accuracy through Robert's actual input setup.
 - macOS microphone permission behavior on Robert's machine.
-- A human 15-minute session with actual guitar has not been completed yet.
+- A complete ended 15-minute session with actual guitar has not been completed yet.
 - Whether the conservative tuning tolerance needs adjustment after real playing.
+- Whether idle-silence forgiveness feels right in Robert's room after another real pass.
 - Whether guided-string prompts feel useful without true string detection.
 
 ## Next Recommended Action

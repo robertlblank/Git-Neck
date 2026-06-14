@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifyFrequencyForTarget,
   describeFrequency,
+  excludeIdleSilenceFromTimer,
   frequencyToPitchClass,
   updateSessionTuningOffset
 } from "../domain/audio";
@@ -82,5 +83,29 @@ describe("audio pitch helpers", () => {
     expect(update.tuningOffsetCents).toBe(10);
     expect(update.sampleCount).toBe(3);
     expect(update.acceptedObservation).toBe(false);
+  });
+
+  it("does not exclude short silence from response timing", () => {
+    const timer = excludeIdleSilenceFromTimer({
+      scoringStartedAtMs: 1000,
+      silenceStartedAtMs: 1000,
+      resumedAtMs: 3500,
+      idleGraceMs: 5000
+    });
+
+    expect(timer.scoringStartedAtMs).toBe(1000);
+    expect(timer.excludedIdleMs).toBe(0);
+  });
+
+  it("excludes long idle silence from response timing", () => {
+    const timer = excludeIdleSilenceFromTimer({
+      scoringStartedAtMs: 1000,
+      silenceStartedAtMs: 1000,
+      resumedAtMs: 21000,
+      idleGraceMs: 5000
+    });
+
+    expect(timer.scoringStartedAtMs).toBe(21000);
+    expect(timer.excludedIdleMs).toBe(20000);
   });
 });

@@ -16,10 +16,10 @@ Result: passed.
 
 ```text
 Test Files  7 passed (7)
-Tests       33 passed (33)
+Tests       35 passed (35)
 ```
 
-Coverage includes notes, fretboard, audio pitch helpers, conservative tuning offset, sessions, scoring, mastery/workout, persistence, and Tiger Mode default migration.
+Coverage includes notes, fretboard, audio pitch helpers, idle-silence timing exclusion, conservative tuning offset, sessions, scoring, mastery/workout, persistence, and Tiger Mode default migration.
 
 ```bash
 npm run typecheck
@@ -80,8 +80,32 @@ Result: both passed.
 - Background auto-advance was added so correct answers move on and wrong/slow answers repeat without requiring a click.
 - Continuous microphone flow was added so Practice starts/restarts listening between prompts without per-note click-through; E2E asserts this behavior.
 - Tiger Mode was made default-on and real: wrong/slow answers lock the prompt until a pass, the Practice `Next` control becomes `Locked`, old v1 persisted defaults migrate to strict repeat, and E2E now verifies lock/unlock behavior.
+- Idle-silence forgiveness was added so quiet breaks over 5 seconds are excluded from response timing instead of creating slow attempts.
 
-## Latest Verification After Tiger Mode Lock
+## Real State Inspection On 2026-06-14
+
+Read from:
+
+```text
+/Users/robertblank/Library/Application Support/git-neck/git-neck-state.json
+```
+
+Known from Robert's real mic/guitar run:
+
+- App state version: 2.
+- Tiger Mode: on.
+- Total persisted attempts: 94.
+- Latest 20 attempts: 10 pass, 8 wrong_note, 2 too_slow.
+- Strict repeat worked: wrong/slow prompts stayed on the same target until a pass in observed sequences for C, F, B, and D.
+- Two recent correct notes were marked `too_slow`: B at 4001ms and D at 3502ms.
+- One wrong F attempt had a 19723ms response time, showing that long quiet gaps could previously inflate timing.
+- Today's attempts updated mastery/recent attempts, but no completed session trend was created because the current run was not ended with `End session`.
+
+Action taken:
+
+- Added idle-silence timing exclusion so quiet gaps over 5 seconds are ignored by response timing.
+
+## Latest Verification After Idle Timing Fix
 
 Run from:
 
@@ -102,9 +126,9 @@ Result:
 
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
-- `npm test`: passed, 7 files / 33 tests.
+- `npm test`: passed, 7 files / 35 tests.
 - `npm run build`: passed.
-- `npm run test:e2e`: passed full Electron workflow test. First sandboxed launch failed with `Process failed to launch!`; rerun outside the sandbox passed.
+- `npm run test:e2e`: passed full Electron workflow test.
 - `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was already occupied. Dev processes were stopped after verification.
 
 ## Current Risk
@@ -115,7 +139,7 @@ Automated checks pass. The remaining risk is real-world pitch detection quality 
 
 Known:
 
-- Unit tests pass: 33 tests.
+- Unit tests pass: 35 tests.
 - Built Electron E2E workflow passes with fake media.
 - Preload path is fixed for built Electron.
 - Project has been renamed to Git Neck in package metadata, UI, docs, IPC names, storage names, and tests.
@@ -123,6 +147,6 @@ Known:
 
 Unknown:
 
-- Actual guitar/microphone detection quality in Robert's room.
-- Whether macOS prompts for microphone permission cleanly on Robert's machine.
+- Exact long-session guitar/microphone detection quality in Robert's room.
 - Whether the conservative tuning offset feels too strict or too forgiving in a real 15-minute session.
+- Whether idle-silence forgiveness feels right during a real interruption.

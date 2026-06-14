@@ -117,6 +117,7 @@ await check("settings and debug simulated scoring work", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
   await assertVisible("Locked");
   await assertVisible("Tiger Mode is locked on this note until you get it right.");
+  await page.getByRole("button", { name: "Repeat" }).click();
 
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: targetNote, exact: true }).click();
