@@ -51,6 +51,7 @@ What is working:
 - Robert's 2026-06-14 real state showed notes were detected, Tiger Mode blocked progress on wrong notes, and right notes progressed. It also showed old timing could count long silence; that was fixed with idle-silence exclusion.
 - Robert's follow-up progress check showed the 11:37 AM session did track: 7 attempts, 5 pass, 2 wrong, 934ms average response. Empty-session clutter was found and fixed.
 - Robert's UI note: after `End session`, Git Neck should not automatically feel like it starts another session. This is deferred and needs product questions before implementation.
+- Robert's UI note: right/wrong feedback should appear close to the displayed target note, not only in the side coach panel, so his eyes do not have to jump while practicing. This is deferred and needs product questions before implementation.
 
 What not to touch:
 - Do not reintroduce verbal confirmation.
@@ -70,6 +71,12 @@ Ask Robert post-session behavior questions before implementing:
 3. What choices should appear: `Start another session`, `Review progress`, `Quit for now`, `Change session type`?
 4. Should a new session start only when Robert clicks a button, or when he plays again?
 5. Should the ended session summary show accuracy, average response, weak notes, and next suggested focus?
+
+Then ask Robert prompt-feedback placement questions before implementing:
+1. Should the target note itself change color on result, or should a compact `Correct` / `Missed` badge appear beside it?
+2. Should the detected note appear next to the target note, e.g. `Target: E | Heard: A`?
+3. Should wrong feedback stay visible until the corrected retry, or fade quickly?
+4. Should side coach remain for extra text while the immediate result moves next to the prompt?
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.
 ```

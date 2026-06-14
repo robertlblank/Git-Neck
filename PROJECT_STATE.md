@@ -71,6 +71,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Curriculum unlock is basic and includes force unlock warning.
 - Fretboard visual is useful but intentionally plain.
 - Post-session UX is not designed yet: after `End session`, the app should not silently feel like it started another session. It should move to a deliberate post-session state or ask what the user wants next.
+- Practice result placement is not designed yet: Robert wants miss/correct feedback near the displayed target note so his eyes do not have to dart between the prompt and the side coach panel.
 
 ## What Is Broken
 
@@ -87,4 +88,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Decide post-session behavior before more training-methodology work. Ask Robert how Git Neck should behave immediately after `End session`, then implement the smallest clear post-session state.
+Decide post-session behavior and prompt-proximate result feedback before more training-methodology work. Ask Robert how Git Neck should behave immediately after `End session`, and what “right/wrong near the note” should look like.
