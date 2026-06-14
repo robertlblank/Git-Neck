@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createDrillPrompt } from "../domain/drills";
 import { createInitialMasteryState, updateMastery } from "../domain/mastery";
 import { scoreAttempt } from "../domain/scoring";
-import { getNextWorkoutFocus, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
+import { getNextWorkoutFocus, getTrainingSelectionPlan, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
 
 function attemptFor(targetPitchClass: number, submittedPitchClass: number, responseMs = 900) {
   const prompt = createDrillPrompt({
@@ -92,5 +92,83 @@ describe("mastery and workout", () => {
     mastery.byPitchClass["0"].score = 5;
 
     expect(getNextWorkoutFocus(mastery, 1)).toBe("Current set: C, G, D. Weakest: C, D, G");
+  });
+
+  it("daily workout prioritizes slow recall inside the current focus", () => {
+    const mastery = createInitialMasteryState();
+    const attempts = [
+      attemptFor(2, 2, 3400),
+      attemptFor(2, 2, 3500),
+      attemptFor(2, 2, 3600)
+    ];
+
+    const prompt = selectNextPrompt({
+      mastery,
+      attempts,
+      currentLevel: 1,
+      nowMs: 5000,
+      mode: "daily",
+      seed: 1
+    });
+
+    expect(prompt.targetPitchClass).toBe(2);
+  });
+
+  it("daily workout prioritizes repeated confusions as contrast work", () => {
+    const mastery = createInitialMasteryState();
+    const attempts = [
+      attemptFor(7, 5),
+      attemptFor(7, 5)
+    ];
+
+    const prompt = selectNextPrompt({
+      mastery,
+      attempts,
+      currentLevel: 1,
+      nowMs: 5000,
+      mode: "daily",
+      seed: 1
+    });
+
+    expect(prompt.targetPitchClass).toBe(7);
+  });
+
+  it("daily workout uses the review bucket for retention-due notes", () => {
+    const mastery = createInitialMasteryState();
+    const attempts = [
+      attemptFor(0, 0),
+      attemptFor(0, 0),
+      attemptFor(0, 0)
+    ];
+
+    const prompt = selectNextPrompt({
+      mastery,
+      attempts,
+      currentLevel: 1,
+      nowMs: 2000 + 24 * 60 * 60 * 1000,
+      mode: "daily",
+      seed: 90000
+    });
+
+    expect(prompt.targetPitchClass).toBe(0);
+  });
+
+  it("training selection plan exposes diagnosis buckets for workout selection", () => {
+    const attempts = [
+      attemptFor(2, 2, 3400),
+      attemptFor(2, 2, 3500),
+      attemptFor(2, 2, 3600),
+      attemptFor(7, 5),
+      attemptFor(7, 5)
+    ];
+
+    const plan = getTrainingSelectionPlan({
+      attempts,
+      nowMs: 5000,
+      pitchClasses: [0, 2, 7]
+    });
+
+    expect(plan.activePitchClasses).toEqual([2]);
+    expect(plan.contrastPitchClasses).toEqual([7]);
   });
 });

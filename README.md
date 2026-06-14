@@ -29,10 +29,11 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Local usage tracking with active, completed, and interrupted session status
 - Empty-session suppression so Progress does not get zero-attempt rows
 - Session Complete summary after ending a practice window, with explicit next choices instead of silently starting over
-- Basic mastery tracking and workout prompt weighting
+- Basic mastery tracking and diagnosis-aware workout prompt weighting
 - Small focus-group progression for note mastery: naturals begin with `C, G, D`, then `A, E`, then `F, B`; sharps/flats enter in small groups
 - Curriculum research brief in `CURRICULUM_RESEARCH.md`
 - Pure training diagnosis module for skill states, repeated confusions, slow recall, retention review, and practice prescriptions
+- Daily Workout uses training diagnosis to prioritize weak accuracy, slow recall, repeated confusions, and retention review inside the current focus set
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
 - Debug-only simulated note input
@@ -114,13 +115,13 @@ Paused time does not count toward the prompt response timer or active session ti
 - Simulated input exists only under Settings / Debug.
 - Persistence is a single local JSON state file.
 - Usage tracking is local-only; there is no analytics backend or cloud telemetry.
-- Training diagnosis is tested but not yet wired into Daily Workout prompt selection.
+- Daily Workout adaptation is intentionally simple and conservative; it is not a full intelligent tutor yet.
 - `npm install` reported dependency audit findings from the installed third-party tree.
 
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 50 tests.
+- `npm test`: passed, 54 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.

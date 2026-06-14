@@ -2,7 +2,8 @@ import { getCurrentLevel } from "./curriculum";
 import { createDrillPrompt } from "./drills";
 import { getWeakestPitchClasses } from "./mastery";
 import { PITCH_CLASSES } from "./notes";
-import type { DrillPrompt, GuitarString, MasteryState, PitchMastery } from "./types";
+import { assessPitchClassSkill, type TrainingSkillAssessment } from "./training";
+import type { Attempt, DrillPrompt, GuitarString, MasteryState, PitchMastery } from "./types";
 
 const GUIDED_STRINGS: GuitarString[] = ["lowE", "A", "D", "G", "B", "highE"];
 const FOCUS_GROUP_READY_SCORE = 55;
@@ -12,6 +13,7 @@ export function selectNextPrompt(params: {
   currentLevel: number;
   nowMs: number;
   mode: "daily" | "free" | "test";
+  attempts?: Attempt[];
   seed?: number;
 }): DrillPrompt {
   const level = getCurrentLevel(params.currentLevel);
@@ -19,16 +21,32 @@ export function selectNextPrompt(params: {
   const sourceRoll = rng();
   const plan = getWorkoutPlan(params.mastery, params.currentLevel);
   const dailyPitchClasses = params.mode === "daily" ? plan.availablePitchClasses : level.pitchClasses;
+  const trainingPlan = getTrainingSelectionPlan({
+    attempts: params.attempts ?? [],
+    nowMs: params.nowMs,
+    pitchClasses: dailyPitchClasses
+  });
   const weakPitchClasses = getWeakestPitchClasses(params.mastery, 12)
     .map((entry) => entry.pitchClass)
     .filter((pitchClass) => dailyPitchClasses.includes(pitchClass));
 
   let targetPitchClass: number;
 
-  if (params.mode === "daily" && sourceRoll < 0.6 && weakPitchClasses.length > 0) {
-    targetPitchClass = pick(weakPitchClasses, rng);
+  if (params.mode === "daily" && sourceRoll < 0.6) {
+    targetPitchClass = pick(
+      firstNonEmpty([
+        trainingPlan.contrastPitchClasses,
+        trainingPlan.activePitchClasses,
+        weakPitchClasses,
+        plan.activePitchClasses
+      ]),
+      rng
+    );
   } else if (params.mode === "daily" && sourceRoll < 0.85) {
-    targetPitchClass = pick(plan.reviewPitchClasses.length > 0 ? plan.reviewPitchClasses : plan.activePitchClasses, rng);
+    targetPitchClass = pick(
+      firstNonEmpty([trainingPlan.reviewPitchClasses, plan.reviewPitchClasses, plan.activePitchClasses]),
+      rng
+    );
   } else {
     const newPitchClasses = params.mode === "daily" ? plan.activePitchClasses : level.pitchClasses;
     const untried = newPitchClasses.filter(
@@ -55,6 +73,13 @@ export type WorkoutPlan = {
   activePitchClasses: number[];
   reviewPitchClasses: number[];
   availablePitchClasses: number[];
+};
+
+export type TrainingSelectionPlan = {
+  activePitchClasses: number[];
+  contrastPitchClasses: number[];
+  reviewPitchClasses: number[];
+  assessments: TrainingSkillAssessment[];
 };
 
 export function getWorkoutPlan(mastery: MasteryState, currentLevel: number): WorkoutPlan {
@@ -91,8 +116,42 @@ export function getNextWorkoutFocus(mastery: MasteryState, currentLevel = 1): st
   return `Current set: ${active}`;
 }
 
+export function getTrainingSelectionPlan(params: {
+  attempts: Attempt[];
+  nowMs: number;
+  pitchClasses: number[];
+}): TrainingSelectionPlan {
+  const assessments = params.pitchClasses.map((pitchClass) =>
+    assessPitchClassSkill({
+      attempts: params.attempts,
+      nowMs: params.nowMs,
+      pitchClass
+    })
+  );
+
+  return {
+    assessments,
+    contrastPitchClasses: getAssessmentPitchClasses(assessments, ["repeated_confusion"]),
+    reviewPitchClasses: getAssessmentPitchClasses(assessments, ["retention_failed"]),
+    activePitchClasses: getAssessmentPitchClasses(assessments, ["weak_accuracy", "slow_recall", "learning"])
+  };
+}
+
 function pick<T>(items: T[], rng: () => number): T {
   return items[Math.floor(rng() * items.length)] ?? items[0];
+}
+
+function firstNonEmpty<T>(groups: T[][]): T[] {
+  return groups.find((group) => group.length > 0) ?? [];
+}
+
+function getAssessmentPitchClasses(
+  assessments: TrainingSkillAssessment[],
+  states: TrainingSkillAssessment["state"][]
+): number[] {
+  return assessments
+    .filter((assessment) => states.includes(assessment.state))
+    .map((assessment) => assessment.targetPitchClass);
 }
 
 function isFocusGroupReady(group: number[], mastery: MasteryState): boolean {

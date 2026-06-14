@@ -138,7 +138,8 @@ export function App(): ReactElement {
           mastery: recoveredState.mastery,
           currentLevel: recoveredState.currentLevel,
           nowMs: Date.now(),
-          mode: "daily"
+          mode: "daily",
+          attempts: recoveredState.attempts
         })
       );
       setLoaded(true);
@@ -226,10 +227,11 @@ export function App(): ReactElement {
         mastery: appState.mastery,
         currentLevel: appState.currentLevel,
         nowMs,
-        mode
+        mode,
+        attempts: appState.attempts
       })
     );
-  }, [appState.currentLevel, appState.mastery, mode]);
+  }, [appState.attempts, appState.currentLevel, appState.mastery, mode]);
 
   const nextPrompt = useCallback(() => {
     if (postSessionSummary) {
@@ -258,7 +260,8 @@ export function App(): ReactElement {
       mastery: appState.mastery,
       currentLevel: appState.currentLevel,
       nowMs: Date.now(),
-      mode
+      mode,
+      attempts: appState.attempts
     });
 
     setPrompt(next);
@@ -272,6 +275,7 @@ export function App(): ReactElement {
     setPostSessionSummary(null);
   }, [
     appState.currentLevel,
+    appState.attempts,
     appState.mastery,
     appState.settings.revealFretboardDefault,
     appState.settings.tigerMode,

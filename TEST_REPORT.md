@@ -332,3 +332,38 @@ No UI behavior was changed in this pass. The training module is pure domain logi
 Note:
 
 - A first sandboxed `npm run test:e2e` attempt hung before the E2E script printed its first step, during Electron launch. The stuck npm/Node/Electron test PIDs were terminated. Rerunning the same command with explicit GUI-launch permission passed.
+
+## Latest Verification After Diagnosis-Aware Daily Workout
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 54 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5173/`. Dev processes were stopped after verification.
+
+Coverage added:
+
+- Daily Workout prioritizes slow recall inside the current focus set.
+- Daily Workout prioritizes repeated confusions as contrast work.
+- Daily Workout uses the review bucket for retention-due notes.
+- Training selection plan exposes active, contrast, and review diagnosis buckets for workout selection.
+
+No UI behavior was changed in this pass. Practice remains clean while training diagnosis works in the background.

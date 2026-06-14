@@ -46,6 +46,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - `End session` now shows a deliberate Session Complete state with attempts, accuracy, average response, active duration, misses, slow answers, next focus, and choices to start another session, review progress, or change session type.
 - Conservative session tuning offset learns slowly from accepted target notes and resets each session.
 - Daily Workout uses curriculum focus groups instead of the whole level at once: natural notes start with `C, G, D`, then move to `A, E`, then `F, B`; sharps/flats are introduced in small groups.
+- Daily Workout now uses training diagnosis inside the available focus set: repeated confusions, weak accuracy, slow recall, and retention-due notes can bias the next prompt.
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
@@ -78,7 +79,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
 - Level unlock is basic and includes force unlock warning.
 - Focus-group advancement is deliberately simple: a group advances when every note in it has at least one attempt and a score of 55+.
-- Training methodology is researched and the first pure `training` domain module exists, but workout prompt selection does not use it yet.
+- Training methodology is researched and the first pure `training` domain module now feeds Daily Workout selection.
 - Speed and retention are currently represented as diagnosis states over pitch/string skills, not as separate standalone skill IDs.
 - Fretboard visual is useful but intentionally plain.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
@@ -98,4 +99,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Next product step should wire the pure `training` diagnosis into Daily Workout prompt selection so weak accuracy, slow recall, repeated confusions, and retention review change what the user sees.
+Next product step should make the training decision legible in Progress or the Session Complete summary without cluttering the active Practice screen.
