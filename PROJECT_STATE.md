@@ -13,6 +13,7 @@ If conversation context is lost or compacted, resume from these files in order:
 3. `TEST_REPORT.md`
 4. `NEXT_SESSION.md`
 5. `README.md`
+6. `CURRICULUM_RESEARCH.md`
 
 Then run:
 
@@ -45,6 +46,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - `End session` now shows a deliberate Session Complete state with attempts, accuracy, average response, active duration, misses, slow answers, next focus, and choices to start another session, review progress, or change session type.
 - Conservative session tuning offset learns slowly from accepted target notes and resets each session.
 - Daily Workout uses curriculum focus groups instead of the whole level at once: natural notes start with `C, G, D`, then move to `A, E`, then `F, B`; sharps/flats are introduced in small groups.
+- `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
 - Pure domain modules for notes, fretboard, audio helpers, sessions, drills, scoring, coaching, mastery, curriculum, and workout.
@@ -75,6 +77,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
 - Level unlock is basic and includes force unlock warning.
 - Focus-group advancement is deliberately simple: a group advances when every note in it has at least one attempt and a score of 55+.
+- Training methodology is researched but not fully implemented. The app still needs a first-class `training` domain module with skill atoms, diagnosis, prescription, and retention handling.
 - Fretboard visual is useful but intentionally plain.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
@@ -93,4 +96,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Next product step should be string-specific methodology: decide how guided-string prompts should enter practice without claiming automatic string detection.
+Next product step should implement the first pure `training` domain module from `CURRICULUM_RESEARCH.md`: skill IDs, diagnosis states, and prescription rules before changing more prompt behavior.

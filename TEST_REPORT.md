@@ -268,3 +268,24 @@ Coverage added:
 - Daily Workout advances to the next focus group after the current group is ready.
 - Next workout focus names the active set and weakest notes.
 - Practice UI shows the current focus set (`C, G, D`) in the session strip.
+
+## Latest Research Pass
+
+Added:
+
+- `CURRICULUM_RESEARCH.md`
+
+Covered:
+
+- best-practice guitar-teacher patterns
+- what expert musicians become good at
+- deliberate practice
+- mastery learning
+- retrieval and spaced practice
+- interleaving/contextual interference
+- intelligent tutoring/student-model architecture
+- modern 2021-2026 self-regulated learning and app motivation findings
+- gamification misuse and abandonment risks
+- guitar-specific constraints around registration, tab, and string/fret ambiguity
+
+No app behavior was changed in this research pass.

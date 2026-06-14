@@ -31,6 +31,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Session Complete summary after ending a practice window, with explicit next choices instead of silently starting over
 - Basic mastery tracking and workout prompt weighting
 - Small focus-group progression for note mastery: naturals begin with `C, G, D`, then `A, E`, then `F, B`; sharps/flats enter in small groups
+- Curriculum research brief in `CURRICULUM_RESEARCH.md`
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
 - Debug-only simulated note input

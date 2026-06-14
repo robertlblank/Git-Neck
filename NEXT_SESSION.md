@@ -20,6 +20,7 @@ Read:
 - src/domain/audio.ts
 - src/domain/sessions.ts
 - src/domain/scoring.ts
+- CURRICULUM_RESEARCH.md
 - src/renderer/App.tsx
 - scripts/e2e-workflows.mjs
 
@@ -45,6 +46,7 @@ What is working:
 - Idle silence over 5 seconds is excluded from response timing so quiet interruptions do not become slow attempts.
 - Practice can be structured as 1 x 15, 3 x 5, or 5 x 3.
 - Daily Workout now uses small curriculum focus groups instead of the whole level at once. Naturals start with `C, G, D`, then `A, E`, then `F, B`; sharps/flats enter in small groups.
+- `CURRICULUM_RESEARCH.md` now captures the research-backed curriculum direction: deliberate practice, mastery learning, retrieval/spaced practice, interleaving, tutoring/student models, modern SRL/gamification findings, app retention risks, and guitar-specific constraints.
 - Completed session trends are shown in Progress.
 - Sessions are persisted while active, marked completed on `End session`, and recovered as interrupted if the app stops mid-session.
 - Empty sessions are not saved, so Progress should only show sessions with attempts.
@@ -71,10 +73,12 @@ What not to touch:
 - Do not add backend/cloud analytics unless Robert explicitly changes the local-only decision. Usage tracking is currently local-first.
 
 Exact next task:
-Continue into string-specific training methodology:
-1. Decide when guided-string prompts enter the Daily mix.
-2. Add a simple, honest prompt mix that asks for strings without claiming automatic string detection.
-3. Keep the loop hands-free and Tiger Mode strict by default.
+Implement the first pure `training` domain module from `CURRICULUM_RESEARCH.md`:
+1. Define skill IDs for pitch-class, string-pitch, confusion-pair, speed, and retention targets.
+2. Add diagnosis states: unseen, introduced, learning, accurate, automatic, retained, weak_accuracy, slow_recall, repeated_confusion, retention_failed, under_sampled.
+3. Add prescription rules for current weak skills, spaced review, and expansion.
+4. Add unit tests before wiring it into prompt selection.
+5. Do not change guided-string prompt behavior until this module exists.
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.
 ```
