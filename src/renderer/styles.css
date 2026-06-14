@@ -348,8 +348,19 @@ button.small {
   min-height: 34px;
 }
 
+.diagnostic-row {
+  font-size: 0.84rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .trend-row span:nth-child(2) {
   font-weight: 800;
+}
+
+.helper-text {
+  color: #716a5c;
+  font-size: 0.86rem;
+  margin: 10px 0 0;
 }
 
 .settings-grid .metric-panel {

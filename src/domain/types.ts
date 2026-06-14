@@ -21,6 +21,15 @@ export type AttemptResult =
 
 export type AttemptSource = "microphone" | "simulated";
 
+export type AttemptAudioDiagnostic = {
+  frequencyHz: number;
+  centsFromTarget: number;
+  acceptedAsTarget: boolean;
+  stableMs: number;
+  stableFrames: number;
+  tuningOffsetCents: number;
+};
+
 export type SessionStructure = "one_15" | "three_5" | "five_3";
 
 export type PracticeSessionStatus = "active" | "completed" | "interrupted";
@@ -41,6 +50,7 @@ export type Attempt = {
   repeatedMistake: boolean;
   cleanStreakCount: number;
   cleanStreakPassed: boolean;
+  audioDiagnostic?: AttemptAudioDiagnostic;
   createdAtMs: number;
 };
 
@@ -105,6 +115,7 @@ export type ScoringInput = {
   verbalConfirmed?: boolean;
   responseMs: number;
   previousAttempts: Attempt[];
+  audioDiagnostic?: AttemptAudioDiagnostic;
   nowMs: number;
 };
 

@@ -43,6 +43,7 @@ export function scoreAttempt(input: ScoringInput): ScoringOutcome {
     repeatedMistake,
     cleanStreakCount: nextCleanStreak,
     cleanStreakPassed: result === "pass" && nextCleanStreak >= CLEAN_STREAK_TARGET,
+    audioDiagnostic: input.audioDiagnostic,
     createdAtMs: input.nowMs
   };
 

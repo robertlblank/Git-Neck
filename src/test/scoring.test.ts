@@ -76,4 +76,26 @@ describe("scoring", () => {
     expect(attempt.mode).toBe("test");
     expect(attempt.result).toBe("too_slow");
   });
+
+  it("keeps microphone audio diagnostics with the scored attempt", () => {
+    const attempt = score({
+      audioDiagnostic: {
+        frequencyHz: 261.6,
+        centsFromTarget: 4,
+        acceptedAsTarget: true,
+        stableMs: 520,
+        stableFrames: 14,
+        tuningOffsetCents: 2
+      }
+    });
+
+    expect(attempt.audioDiagnostic).toEqual({
+      frequencyHz: 261.6,
+      centsFromTarget: 4,
+      acceptedAsTarget: true,
+      stableMs: 520,
+      stableFrames: 14,
+      tuningOffsetCents: 2
+    });
+  });
 });

@@ -53,6 +53,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
+- Settings / Debug includes microphone audio diagnostics for recent scored mic attempts: target, heard note, frequency, cents, stable time, and result.
 - Pure domain modules for notes, fretboard, audio helpers, sessions, drills, scoring, coaching, mastery, curriculum, workout, and training diagnosis.
 - Training diagnosis can assess pitch-class, string-pitch, and repeated-confusion skills as `unseen`, `introduced`, `weak_accuracy`, `slow_recall`, `repeated_confusion`, `retention_failed`, `accurate`, or `automatic`, then prescribe active/review/contrast/expand practice.
 - Local JSON persistence through Electron main/preload IPC.
@@ -75,6 +76,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Real state inspection on 2026-06-14 showed Tiger Mode worked: misses stayed on C/F/B/D until the target was hit. It also showed long silent gaps could previously inflate response time, which is now fixed.
 - Real state inspection after Robert's progress check on 2026-06-14 showed Progress did track the ended 11:37 AM session: 7 attempts, 5 pass, 2 wrong, 934ms average response. It also showed empty sessions could clutter Progress; empty-session saving is now fixed.
 - Real state inspection after Robert reported false misses on 2026-06-14 showed many wrong notes were scored in about 159-260ms, often as D#/Eb. These were treated as false negatives from attack/transient detection, not user misses.
+- Microphone attempts now persist optional audio diagnostics so future false-miss reports can be inspected without guessing.
 
 ## What Is Partial
 
@@ -104,4 +106,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Next product step should let Robert retest a real mic practice run and verify whether false misses are reduced after the stable-note gate and YIN-style estimator.
+Next product step should let Robert retest a real mic practice run and inspect Settings / Debug audio diagnostics if any false misses remain.

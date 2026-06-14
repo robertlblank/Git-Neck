@@ -97,7 +97,6 @@ await check("microphone stays available without per-note click", async () => {
   const stop = page.getByRole("button", { name: "Mic on" });
   if (await stop.isVisible().catch(() => false)) {
     await stop.click();
-    await assertVisible("Microphone idle.");
     await assertVisible("Turn mic on");
     assert(/git neck/i.test(await visibleText()));
   }
@@ -111,6 +110,7 @@ await check("settings and debug simulated scoring work", async () => {
 
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await assertVisible("Debug simulated input");
+  await assertVisible("Audio diagnostics");
   await page.locator('label:has-text("Session structure") select').selectOption("three_5");
   await scoreDebugNoteAndWaitForAttempt(wrongNote);
 

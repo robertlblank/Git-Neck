@@ -34,7 +34,7 @@ import {
   recoverInterruptedSessions,
   SESSION_STRUCTURES
 } from "../domain/sessions";
-import type { AppState, Attempt, AttemptSource, DrillMode, DrillPrompt, Settings } from "../domain/types";
+import type { AppState, Attempt, AttemptAudioDiagnostic, AttemptSource, DrillMode, DrillPrompt, Settings } from "../domain/types";
 import { getNextWorkoutFocus, getNextWorkoutRationale, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
 import { createDefaultAppState, normalizeAppState } from "../persistence/schema";
 
@@ -100,6 +100,7 @@ export function App(): ReactElement {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
+  const listeningGenerationRef = useRef(0);
   const scoringStartedAtMsRef = useRef(Date.now());
   const appStateRef = useRef(appState);
   const currentSessionIdRef = useRef(currentSessionId);
@@ -189,6 +190,7 @@ export function App(): ReactElement {
   }, [paused, sessionPausedMs, sessionStartedAtMs]);
 
   const stopListening = useCallback((nextStatus = "Microphone idle.") => {
+    listeningGenerationRef.current += 1;
     if (frameRef.current !== null) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
@@ -200,6 +202,7 @@ export function App(): ReactElement {
     audioContextRef.current = null;
     analyserRef.current = null;
     setListening(false);
+    setDetectedPitch(null);
     setAudioStatus(nextStatus);
   }, []);
 
@@ -307,7 +310,7 @@ export function App(): ReactElement {
     setPaused(false);
   }, [appState.settings.revealFretboardDefault, postSessionSummary, prompt, sessionPauseStartedAtMs, stopListening]);
 
-  const scoreDetectedPitch = useCallback((pitchClass: number, source: AttemptSource) => {
+  const scoreDetectedPitch = useCallback((pitchClass: number, source: AttemptSource, audioDiagnostic?: AttemptAudioDiagnostic) => {
     if (postSessionSummary) {
       return;
     }
@@ -324,6 +327,7 @@ export function App(): ReactElement {
       source,
       responseMs: nowMs - scoringStartedAtMsRef.current,
       previousAttempts: latestState.attempts,
+      audioDiagnostic,
       nowMs
     });
 
@@ -510,6 +514,8 @@ export function App(): ReactElement {
       setListening(true);
       setAudioStatus("Listening. Play one clear note.");
 
+      listeningGenerationRef.current += 1;
+      const listeningGeneration = listeningGenerationRef.current;
       const buffer = new Float32Array(analyser.fftSize);
       let stablePitchClass: number | null = null;
       let stablePitchStartedAtMs: number | null = null;
@@ -518,6 +524,10 @@ export function App(): ReactElement {
       let idleStatusShown = false;
 
       const tick = (): void => {
+        if (listeningGeneration !== listeningGenerationRef.current) {
+          return;
+        }
+
         analyser.getFloatTimeDomainData(buffer);
         const detection = estimatePitchFromTimeDomain(buffer, audioContext.sampleRate);
 
@@ -588,7 +598,14 @@ export function App(): ReactElement {
               setSessionTuningSamples(tuningUpdate.sampleCount);
             }
 
-            scoreDetectedPitch(classification.pitchClass, "microphone");
+            scoreDetectedPitch(classification.pitchClass, "microphone", {
+              frequencyHz: Math.round(detection.frequencyHz * 10) / 10,
+              centsFromTarget: classification.centsFromTarget,
+              acceptedAsTarget: classification.acceptedAsTarget,
+              stableMs: stablePitchStartedAtMs === null ? 0 : nowMs - stablePitchStartedAtMs,
+              stableFrames,
+              tuningOffsetCents: sessionTuningOffsetCents
+            });
             stopListening(`Scored ${classification.displayName}. Listening stopped.`);
             return;
           }
@@ -1233,7 +1250,35 @@ function SettingsArea(props: {
         </button>
         <p>{props.forceUnlockWarning}</p>
       </div>
+      <AudioDiagnostics attempts={props.appState.attempts} />
       <RecentAttempts attempts={props.recentAttempts} />
+    </section>
+  );
+}
+
+function AudioDiagnostics(props: { attempts: Attempt[] }): ReactElement {
+  const diagnosticAttempts = props.attempts
+    .filter((attempt) => attempt.source === "microphone" && attempt.audioDiagnostic)
+    .slice(-6)
+    .reverse();
+
+  return (
+    <section className="metric-panel">
+      <p className="eyebrow">Audio diagnostics</p>
+      <div className="attempt-list">
+        {diagnosticAttempts.length === 0 && <p>No microphone diagnostics yet.</p>}
+        {diagnosticAttempts.map((attempt) => (
+          <div className="attempt-row diagnostic-row" key={attempt.id}>
+            <span>{getDisplayName(attempt.targetPitchClass)}</span>
+            <span>{attempt.submittedDisplayName ?? "-"}</span>
+            <span>{attempt.audioDiagnostic?.frequencyHz}Hz</span>
+            <span>{formatCents(attempt.audioDiagnostic?.centsFromTarget ?? 0)}</span>
+            <span>{attempt.audioDiagnostic?.stableMs}ms</span>
+            <span>{attempt.result}</span>
+          </div>
+        ))}
+      </div>
+      <p className="helper-text">Target, heard, frequency, cents, stable time, result.</p>
     </section>
   );
 }

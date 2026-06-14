@@ -445,3 +445,38 @@ Action taken:
 Known limitation:
 
 - This should reduce false negatives, but the real proof is Robert retesting through the Mac microphone with guitar.
+
+## Latest Verification After Audio Diagnostics
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 63 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test, including Settings / Debug audio diagnostics visibility.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was occupied. Dev processes were stopped after verification.
+
+Coverage added:
+
+- Scoring preserves optional microphone audio diagnostics on attempts.
+- Settings / Debug exposes an Audio diagnostics panel.
+
+Known limitation:
+
+- Existing persisted attempts before this change do not have audio diagnostics. Only new mic-scored attempts will show frequency/cents/stable-time evidence.

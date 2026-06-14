@@ -38,6 +38,7 @@ What is working:
 - Practice uses Start listening as the primary action.
 - The app requests microphone input, estimates one monophonic pitch, applies conservative session-relative tuning tolerance, scores automatically, updates mastery, and shows feedback.
 - Microphone scoring waits for a stable pitch before submitting an attempt, reducing false misses from pick attack transients.
+- Settings / Debug shows local audio diagnostics for recent mic attempts: target, heard note, frequency, cents, stable time, and result.
 - Practice hides detailed scoring widgets; scoring happens in the background and trends live in Progress.
 - Practice shows immediate correct/miss/too-slow/locked feedback next to the displayed prompt, including `Heard <note>` when available.
 - Practice shows the current curriculum focus set.
@@ -58,7 +59,7 @@ What is working:
 - Ending a session now stops practice and shows a Session Complete summary with attempts, accuracy, average response, duration, misses, slow answers, next focus, and choices for `Start another session`, `Review progress`, and `Change session type`.
 - Simulated input exists only in Settings / Debug.
 - Verbal confirmation and talking to the app are no longer part of the product.
-- Tests currently pass: 62 unit tests plus the Electron E2E workflow.
+- Tests currently pass: 63 unit tests plus the Electron E2E workflow.
 - Latest verification from `/Users/robertblank/Guitar Gear Codex/git-neck` passed for `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e`, and `npm run dev`.
 - Robert's 2026-06-14 real state showed notes were detected, Tiger Mode blocked progress on wrong notes, and right notes progressed. It also showed old timing could count long silence; that was fixed with idle-silence exclusion.
 - Robert's follow-up progress check showed the 11:37 AM session did track: 7 attempts, 5 pass, 2 wrong, 934ms average response. Empty-session clutter was found and fixed.
@@ -82,8 +83,8 @@ Have Robert run one real mic practice session and validate the false-miss fix:
 1. Run `npm run dev`.
 2. Practice slowly through prompted notes and watch whether the heard note matches what was played.
 3. End the session.
-4. Inspect the latest attempts if Robert reports wrong scoring.
-5. If false misses persist, add a visible debug readout or audio diagnostic log before tuning thresholds again.
+4. Inspect Settings / Debug audio diagnostics if Robert reports wrong scoring.
+5. If false misses persist, use the diagnostic frequency/cents/stable-time evidence before tuning thresholds again.
 6. Do not add curriculum features until detection feels trustworthy.
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.

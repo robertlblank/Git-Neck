@@ -39,6 +39,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
 - Debug-only simulated note input
+- Settings-only microphone diagnostics for validating target/heard/frequency/cents/stable-time evidence
 - Unit and Electron UI workflow tests
 
 ## Intentionally Deferred
@@ -117,13 +118,14 @@ Paused time does not count toward the prompt response timer or active session ti
 - Simulated input exists only under Settings / Debug.
 - Persistence is a single local JSON state file.
 - Usage tracking is local-only; there is no analytics backend or cloud telemetry.
+- Audio diagnostics are local-only and exist to debug detection quality.
 - Daily Workout adaptation is intentionally simple and conservative; it is not a full intelligent tutor yet.
 - `npm install` reported dependency audit findings from the installed third-party tree.
 
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 62 tests.
+- `npm test`: passed, 63 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
