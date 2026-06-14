@@ -40,6 +40,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Completed session trends show session accuracy, average response time, attempt count, and active duration.
 - Sessions are now persisted while active, marked completed on `End session`, and recovered as interrupted on next launch if the app stopped mid-session.
 - Empty sessions are not saved to Progress when `End session` is clicked without attempts.
+- `End session` now shows a deliberate Session Complete state with attempts, accuracy, average response, active duration, misses, slow answers, next focus, and choices to start another session, review progress, or change session type.
 - Conservative session tuning offset learns slowly from accepted target notes and resets each session.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
@@ -71,7 +72,6 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Test/pressure mode exists as a simple mode with a faster scoring target; it is not a full exam flow.
 - Curriculum unlock is basic and includes force unlock warning.
 - Fretboard visual is useful but intentionally plain.
-- Post-session UX is not designed yet: after `End session`, the app should not silently feel like it started another session. It should move to a deliberate post-session state or ask what the user wants next.
 - Practice result placement is not designed yet: Robert wants miss/correct feedback near the displayed target note so his eyes do not have to dart between the prompt and the side coach panel.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
@@ -90,4 +90,4 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 
 ## Next Recommended Action
 
-Decide post-session behavior and prompt-proximate result feedback before more training-methodology work. Ask Robert how Git Neck should behave immediately after `End session`, and what “right/wrong near the note” should look like.
+Next product step should be prompt-proximate result feedback and then training-methodology/content depth. Ask Robert what “right/wrong near the note” should look like before implementing visual placement.

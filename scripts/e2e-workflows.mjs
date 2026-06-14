@@ -130,7 +130,7 @@ await check("ending a session creates a trend entry", async () => {
   const promptText = await page.locator(".prompt-panel h2").innerText();
   const targetNote = getTargetNoteForPrompt(promptText);
   await page.getByRole("button", { name: "Settings / Debug" }).click();
-  await scoreDebugNoteAndWaitForAttempt(targetNote);
+  await scoreDebugNoteAndWaitForActiveSessionAttempt(targetNote);
   await page.getByRole("button", { name: "Practice" }).click();
   await page.getByRole("button", { name: "Pause" }).click();
   await assertVisible("Paused. Timer stopped.");
@@ -141,18 +141,21 @@ await check("ending a session creates a trend entry", async () => {
   const completedSessionCountBeforeEnd = await getPersistedCompletedSessionCount();
   await page.getByRole("button", { name: "End session" }).click();
   await assert.equal(await getPersistedCompletedSessionCount(), completedSessionCountBeforeEnd + 1);
-  await page.getByRole("button", { name: "Progress" }).click();
+  await assertVisible("Session Complete");
+  await assertVisible("Start another session");
+  await assertVisible("Review progress");
+  await assertVisible("Change session type");
+  await page.getByRole("button", { name: "Progress", exact: true }).click();
   await assertVisible("Session trends");
   await assertVisible(/Session \d+/);
 
   await page.getByRole("button", { name: "Practice" }).click();
-  const sessionCount = await getPersistedSessionCount();
-  await page.getByRole("button", { name: "End session" }).click();
-  await assert.equal(await getPersistedSessionCount(), sessionCount);
+  await page.getByRole("button", { name: "Start another session" }).click();
+  await page.locator(".prompt-panel h2").getByText(/Play/).waitFor({ timeout: 5000 });
 });
 
 await check("progress shows recent attempts", async () => {
-  await page.getByRole("button", { name: "Progress" }).click();
+  await page.getByRole("button", { name: "Progress", exact: true }).click();
   await assertVisible("Recent attempts");
   await assertVisible(/pass|wrong_note|too_slow/);
 });
@@ -188,10 +191,33 @@ async function assertVisible(textOrRegex) {
 }
 
 async function scoreDebugNoteAndWaitForAttempt(noteName) {
+  const noteButton = page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: noteName, exact: true });
+  await noteButton.click();
+  await expectClass(noteButton, "selected-note");
   const attemptCount = await getPersistedAttemptCount();
-  await page.locator('[aria-label="Debug simulated note input"]').getByRole("button", { name: noteName, exact: true }).click();
   await page.getByRole("button", { name: "Score debug note" }).click();
   await waitForPersistedAttemptCountAbove(attemptCount);
+}
+
+async function scoreDebugNoteAndWaitForActiveSessionAttempt(noteName) {
+  const activeAttemptCount = await getPersistedActiveSessionAttemptCount();
+  await scoreDebugNoteAndWaitForAttempt(noteName);
+  await waitForPersistedActiveSessionAttemptCountAbove(activeAttemptCount);
+}
+
+async function expectClass(locator, className) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < 5000) {
+    const classes = await locator.getAttribute("class");
+    if (classes?.split(/\s+/).includes(className)) {
+      return;
+    }
+
+    await page.waitForTimeout(50);
+  }
+
+  throw new Error(`Expected class ${className}`);
 }
 
 async function waitForPersistedAttemptCountAbove(attemptCount) {
@@ -208,16 +234,32 @@ async function waitForPersistedAttemptCountAbove(attemptCount) {
   throw new Error(`Attempt count did not increase above ${attemptCount}`);
 }
 
+async function waitForPersistedActiveSessionAttemptCountAbove(attemptCount) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < 5000) {
+    if ((await getPersistedActiveSessionAttemptCount()) > attemptCount) {
+      return;
+    }
+
+    await page.waitForTimeout(100);
+  }
+
+  throw new Error(`Active session attempt count did not increase above ${attemptCount}`);
+}
+
 async function getPersistedAttemptCount() {
   return (await getPersistedState()).attempts.length;
 }
 
-async function getPersistedSessionCount() {
-  return (await getPersistedSessions()).length;
-}
-
 async function getPersistedCompletedSessionCount() {
   return (await getPersistedSessions()).filter((session) => session.status === "completed").length;
+}
+
+async function getPersistedActiveSessionAttemptCount() {
+  return (await getPersistedSessions())
+    .filter((session) => session.status === "active")
+    .reduce((count, session) => count + session.attemptIds.length, 0);
 }
 
 async function getPersistedSessions() {

@@ -167,3 +167,35 @@ Unknown:
 - Exact long-session guitar/microphone detection quality in Robert's room.
 - Whether the conservative tuning offset feels too strict or too forgiving in a real 15-minute session.
 - Whether idle-silence forgiveness feels right during a real interruption.
+
+## Latest Verification After Post-Session Summary
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 7 files / 39 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test, including Session Complete after `End session`, Progress review, and starting another session from the summary.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5173/`. Dev processes were stopped after verification.
+
+Notes:
+
+- First E2E run during this change exposed a real state-timing risk around quickly ending a debug-scored session. App/session refs were added so scoring and end-session bookkeeping remain synchronized.
+- A later E2E failure was selector ambiguity between the nav `Progress` button and the new `Review progress` action. The test now clicks the exact nav button.
+- Local shell startup still prints `brew shellenv.sh` errors before commands. This is outside the repo; project commands continue and pass.

@@ -45,13 +45,14 @@ What is working:
 - Completed session trends are shown in Progress.
 - Sessions are persisted while active, marked completed on `End session`, and recovered as interrupted if the app stops mid-session.
 - Empty sessions are not saved, so Progress should only show sessions with attempts.
+- Ending a session now stops practice and shows a Session Complete summary with attempts, accuracy, average response, duration, misses, slow answers, next focus, and choices for `Start another session`, `Review progress`, and `Change session type`.
 - Simulated input exists only in Settings / Debug.
 - Verbal confirmation and talking to the app are no longer part of the product.
 - Tests currently pass: 39 unit tests plus the Electron E2E workflow.
 - Latest verification from `/Users/robertblank/Guitar Gear Codex/git-neck` passed for `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e`, and `npm run dev`.
 - Robert's 2026-06-14 real state showed notes were detected, Tiger Mode blocked progress on wrong notes, and right notes progressed. It also showed old timing could count long silence; that was fixed with idle-silence exclusion.
 - Robert's follow-up progress check showed the 11:37 AM session did track: 7 attempts, 5 pass, 2 wrong, 934ms average response. Empty-session clutter was found and fixed.
-- Robert's UI note: after `End session`, Git Neck should not automatically feel like it starts another session. This is deferred and needs product questions before implementation.
+- Robert's UI note: after `End session`, Git Neck should not automatically feel like it starts another session. Implemented as a Session Complete state with explicit choices.
 - Robert's UI note: right/wrong feedback should appear close to the displayed target note, not only in the side coach panel, so his eyes do not have to jump while practicing. This is deferred and needs product questions before implementation.
 
 What not to touch:
@@ -67,18 +68,16 @@ What not to touch:
 - Do not add backend/cloud analytics unless Robert explicitly changes the local-only decision. Usage tracking is currently local-first.
 
 Exact next task:
-Ask Robert post-session behavior questions before implementing:
-1. After `End session`, should Practice show a summary screen, go to Progress, or show choices?
-2. Should the mic stay off until Robert explicitly starts another session?
-3. What choices should appear: `Start another session`, `Review progress`, `Quit for now`, `Change session type`?
-4. Should a new session start only when Robert clicks a button, or when he plays again?
-5. Should the ended session summary show accuracy, average response, weak notes, and next suggested focus?
-
-Then ask Robert prompt-feedback placement questions before implementing:
+Ask Robert prompt-feedback placement questions before implementing:
 1. Should the target note itself change color on result, or should a compact `Correct` / `Missed` badge appear beside it?
 2. Should the detected note appear next to the target note, e.g. `Target: E | Heard: A`?
 3. Should wrong feedback stay visible until the corrected retry, or fade quickly?
 4. Should side coach remain for extra text while the immediate result moves next to the prompt?
+
+Then continue into training-methodology/content depth:
+1. Decide when to use note-only prompts vs guided-string prompts.
+2. Add a simple level-specific prompt mix that teaches the neck deliberately instead of calling random notes forever.
+3. Keep the loop hands-free and Tiger Mode strict by default.
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.
 ```

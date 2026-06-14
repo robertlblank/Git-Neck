@@ -26,6 +26,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Completed session trends
 - Local usage tracking with active, completed, and interrupted session status
 - Empty-session suppression so Progress does not get zero-attempt rows
+- Session Complete summary after ending a practice window, with explicit next choices instead of silently starting over
 - Basic mastery tracking and workout prompt weighting
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
@@ -73,6 +74,7 @@ npm run test:e2e
 5. Git Neck briefly shows coaching feedback, advances automatically after a pass, or repeats the same prompt after a miss/slow hit.
 6. Use `Pause` when you stop for a text or interruption; quiet idle gaps over 5 seconds are also excluded from response timing.
 7. Use `Turn mic on`, `Repeat`, `Next`, or `End session` as manual overrides.
+8. Ending a session stops practice and shows a Session Complete summary. Start another session only when you explicitly choose to.
 
 ## Session Options
 

@@ -198,6 +198,10 @@ button.small {
   margin: 20px 0;
 }
 
+.status-panel h2 {
+  font-size: clamp(2rem, 5vw, 3.6rem);
+}
+
 .status-panel dt {
   color: #716a5c;
   font-size: 0.78rem;

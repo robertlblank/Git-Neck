@@ -41,6 +41,20 @@ type Area = "practice" | "progress" | "settings";
 
 const STORAGE_KEY = "git-neck-state";
 
+type PostSessionSummary = {
+  sessionId: string;
+  attemptCount: number;
+  accuracyPercent: number;
+  averageResponseMs: number;
+  activePracticeMs: number;
+  resultCounts: {
+    pass: number;
+    wrong_note: number;
+    too_slow: number;
+  };
+  weakestNotes: string[];
+};
+
 export function App(): ReactElement {
   const [area, setArea] = useState<Area>("practice");
   const [appState, setAppState] = useState<AppState>(() => createDefaultAppState());
@@ -66,6 +80,7 @@ export function App(): ReactElement {
   const [listening, setListening] = useState(false);
   const [audioStatus, setAudioStatus] = useState("Microphone idle.");
   const [detectedPitch, setDetectedPitch] = useState<PitchDetection | null>(null);
+  const [postSessionSummary, setPostSessionSummary] = useState<PostSessionSummary | null>(null);
   const [sessionStartedAtMs, setSessionStartedAtMs] = useState(() => Date.now());
   const [sessionPausedMs, setSessionPausedMs] = useState(0);
   const [sessionPauseStartedAtMs, setSessionPauseStartedAtMs] = useState<number | null>(null);
@@ -79,6 +94,21 @@ export function App(): ReactElement {
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
   const scoringStartedAtMsRef = useRef(Date.now());
+  const appStateRef = useRef(appState);
+  const currentSessionIdRef = useRef(currentSessionId);
+  const sessionAttemptIdsRef = useRef(sessionAttemptIds);
+
+  useEffect(() => {
+    appStateRef.current = appState;
+  }, [appState]);
+
+  useEffect(() => {
+    currentSessionIdRef.current = currentSessionId;
+  }, [currentSessionId]);
+
+  useEffect(() => {
+    sessionAttemptIdsRef.current = sessionAttemptIds;
+  }, [sessionAttemptIds]);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +124,7 @@ export function App(): ReactElement {
         sessions: recoverInterruptedSessions(state.sessions, Date.now())
       };
 
+      appStateRef.current = recoveredState;
       setAppState(recoveredState);
       setShowFretboard(state.settings.revealFretboardDefault);
       setPrompt(
@@ -164,7 +195,41 @@ export function App(): ReactElement {
     setAudioStatus(nextStatus);
   }, []);
 
+  const startNewSession = useCallback(() => {
+    const nowMs = Date.now();
+    setPostSessionSummary(null);
+    setSessionStartedAtMs(nowMs);
+    setSessionPausedMs(0);
+    setSessionPauseStartedAtMs(null);
+    setSessionActiveMs(0);
+    setCurrentSessionId(null);
+    currentSessionIdRef.current = null;
+    setSessionAttemptIds([]);
+    sessionAttemptIdsRef.current = [];
+    setMissLockedPrompt(null);
+    setSessionTuningOffsetCents(0);
+    setSessionTuningSamples(0);
+    setLastAttempt(null);
+    setDetectedPitch(null);
+    setElapsedMs(0);
+    setPaused(false);
+    setFeedback("Mic starts automatically. Play the note.");
+    setMicEnabled(true);
+    setPrompt(
+      selectNextPrompt({
+        mastery: appState.mastery,
+        currentLevel: appState.currentLevel,
+        nowMs,
+        mode
+      })
+    );
+  }, [appState.currentLevel, appState.mastery, mode]);
+
   const nextPrompt = useCallback(() => {
+    if (postSessionSummary) {
+      return;
+    }
+
     stopListening();
     if (sessionPauseStartedAtMs !== null) {
       setSessionPausedMs((value) => value + Date.now() - sessionPauseStartedAtMs);
@@ -198,6 +263,7 @@ export function App(): ReactElement {
     setFeedback("Mic starts automatically. Play the note.");
     setShowFretboard(appState.settings.revealFretboardDefault);
     setPaused(false);
+    setPostSessionSummary(null);
   }, [
     appState.currentLevel,
     appState.mastery,
@@ -205,11 +271,16 @@ export function App(): ReactElement {
     appState.settings.tigerMode,
     missLockedPrompt,
     mode,
+    postSessionSummary,
     sessionPauseStartedAtMs,
     stopListening
   ]);
 
   const repeatPrompt = useCallback(() => {
+    if (postSessionSummary) {
+      return;
+    }
+
     stopListening();
     if (sessionPauseStartedAtMs !== null) {
       setSessionPausedMs((value) => value + Date.now() - sessionPauseStartedAtMs);
@@ -223,10 +294,17 @@ export function App(): ReactElement {
     setFeedback("Same prompt.");
     setShowFretboard(appState.settings.revealFretboardDefault);
     setPaused(false);
-  }, [appState.settings.revealFretboardDefault, prompt, sessionPauseStartedAtMs, stopListening]);
+  }, [appState.settings.revealFretboardDefault, postSessionSummary, prompt, sessionPauseStartedAtMs, stopListening]);
 
   const scoreDetectedPitch = useCallback((pitchClass: number, source: AttemptSource) => {
+    if (postSessionSummary) {
+      return;
+    }
+
     const nowMs = Date.now();
+    const latestState = appStateRef.current;
+    const latestSessionId = currentSessionIdRef.current;
+    const latestAttemptIds = sessionAttemptIdsRef.current;
     const outcome = scoreAttempt({
       prompt,
       mode,
@@ -234,45 +312,50 @@ export function App(): ReactElement {
       submittedDisplayName: getDisplayName(pitchClass),
       source,
       responseMs: nowMs - scoringStartedAtMsRef.current,
-      previousAttempts: appState.attempts,
+      previousAttempts: latestState.attempts,
       nowMs
     });
 
     const activePracticeMs =
       nowMs - sessionStartedAtMs - sessionPausedMs - (sessionPauseStartedAtMs === null ? 0 : nowMs - sessionPauseStartedAtMs);
-    const activeSessionId = currentSessionId ?? `session-${sessionStartedAtMs}`;
+    const activeSessionId = latestSessionId ?? `session-${sessionStartedAtMs}`;
     const nextSessions = appendAttemptToActiveSession({
-      sessions: appState.sessions,
+      sessions: latestState.sessions,
       sessionId: activeSessionId,
       mode,
-      structure: appState.settings.sessionStructure,
+      structure: latestState.settings.sessionStructure,
       startedAtMs: sessionStartedAtMs,
       activePracticeMs,
       attemptId: outcome.attempt.id
     });
     const nextState: AppState = {
-      ...appState,
-      attempts: [...appState.attempts, outcome.attempt],
-      mastery: updateMastery(appState.mastery, outcome.attempt),
+      ...latestState,
+      attempts: [...latestState.attempts, outcome.attempt],
+      mastery: updateMastery(latestState.mastery, outcome.attempt),
       sessions: nextSessions
     };
+    const nextAttemptIds = latestAttemptIds.includes(outcome.attempt.id)
+      ? latestAttemptIds
+      : [...latestAttemptIds, outcome.attempt.id];
 
+    appStateRef.current = nextState;
+    currentSessionIdRef.current = activeSessionId;
+    sessionAttemptIdsRef.current = nextAttemptIds;
     setAppState(nextState);
     setCurrentSessionId(activeSessionId);
-    setSessionAttemptIds((attemptIds) => [...attemptIds, outcome.attempt.id]);
+    setSessionAttemptIds(nextAttemptIds);
     setLastAttempt(outcome.attempt);
     setMissLockedPrompt(outcome.attempt.result === "pass" ? null : prompt);
     setElapsedMs(outcome.attempt.responseMs);
     setFeedback(getCoachingFeedback(outcome.attempt, prompt));
     setShowFretboard(true);
   }, [
-    appState,
-    currentSessionId,
     mode,
     prompt,
     sessionPauseStartedAtMs,
     sessionPausedMs,
-    sessionStartedAtMs
+    sessionStartedAtMs,
+    postSessionSummary
   ]);
 
   const togglePause = useCallback(() => {
@@ -297,56 +380,84 @@ export function App(): ReactElement {
   const endSession = useCallback(() => {
     stopListening();
     const nowMs = Date.now();
+    const latestState = appStateRef.current;
+    const latestSessionId = currentSessionIdRef.current;
+    const latestAttemptIds = sessionAttemptIdsRef.current;
     const activePracticeMs =
       nowMs - sessionStartedAtMs - sessionPausedMs - (sessionPauseStartedAtMs === null ? 0 : nowMs - sessionPauseStartedAtMs);
+    const activeSession =
+      (latestSessionId === null ? null : latestState.sessions.find((session) => session.id === latestSessionId)) ??
+      [...latestState.sessions].reverse().find((session) => session.status === "active" && session.attemptIds.length > 0) ??
+      null;
+    const activeSessionId = activeSession?.id ?? latestSessionId;
+    const endedAttemptIds = latestAttemptIds.length > 0 ? latestAttemptIds : (activeSession?.attemptIds ?? []);
+    const hasAttempts = endedAttemptIds.length > 0;
     const completedSession =
-      sessionAttemptIds.length > 0
-        ? currentSessionId === null
+      hasAttempts
+        ? activeSessionId === null
           ? createCompletedPracticeSession({
               id: `session-${nowMs}`,
               mode,
-              structure: appState.settings.sessionStructure,
+              structure: latestState.settings.sessionStructure,
               startedAtMs: sessionStartedAtMs,
               endedAtMs: nowMs,
               activePracticeMs,
-              attemptIds: sessionAttemptIds
+              attemptIds: endedAttemptIds
             })
           : null
         : null;
 
-    if (currentSessionId !== null) {
-      setAppState({
-        ...appState,
+    const endedSessionId = activeSessionId ?? (completedSession?.id ?? `session-${nowMs}`);
+    let nextState = latestState;
+
+    if (activeSessionId !== null) {
+      nextState = {
+        ...latestState,
         sessions: completeActiveSession({
-          sessions: appState.sessions,
-          sessionId: currentSessionId,
+          sessions: latestState.sessions,
+          sessionId: activeSessionId,
           endedAtMs: nowMs,
           activePracticeMs
         })
-      });
+      };
     } else if (completedSession) {
-      setAppState({
-        ...appState,
-        sessions: [...appState.sessions, completedSession]
-      });
+      nextState = {
+        ...latestState,
+        sessions: [...latestState.sessions, completedSession]
+      };
     }
+
+    if (nextState !== latestState) {
+      appStateRef.current = nextState;
+      setAppState(nextState);
+    }
+
+    setPostSessionSummary(
+      hasAttempts
+        ? buildPostSessionSummary({
+            sessionId: endedSessionId,
+            attemptIds: endedAttemptIds,
+            attempts: nextState.attempts,
+            activePracticeMs
+          })
+        : null
+    );
     setSessionStartedAtMs(nowMs);
     setSessionPausedMs(0);
     setSessionPauseStartedAtMs(null);
     setSessionActiveMs(0);
     setCurrentSessionId(null);
+    currentSessionIdRef.current = null;
     setSessionAttemptIds([]);
+    sessionAttemptIdsRef.current = [];
     setMissLockedPrompt(null);
     setSessionTuningOffsetCents(0);
     setSessionTuningSamples(0);
     setPaused(false);
-    setFeedback(completedSession ? "Session saved. Start the next one clean." : "No attempts to save. Start clean.");
+    setFeedback(hasAttempts ? "Session saved." : "No attempts to save. Start clean.");
     setMicEnabled(false);
   }, [
-    appState,
-    currentSessionId,
     mode,
-    sessionAttemptIds,
     sessionPauseStartedAtMs,
     sessionPausedMs,
     sessionStartedAtMs,
@@ -355,7 +466,7 @@ export function App(): ReactElement {
 
   const startListening = useCallback(async () => {
     try {
-      if (listening || paused || lastAttempt) {
+      if (listening || paused || lastAttempt || postSessionSummary) {
         return;
       }
 
@@ -482,6 +593,7 @@ export function App(): ReactElement {
     lastAttempt,
     listening,
     paused,
+    postSessionSummary,
     prompt.targetPitchClass,
     scoreDetectedPitch,
     sessionTuningOffsetCents,
@@ -492,12 +604,12 @@ export function App(): ReactElement {
   useEffect(() => stopListening, [stopListening]);
 
   useEffect(() => {
-    if (area !== "practice" || !loaded || !micEnabled || paused || lastAttempt || listening) {
+    if (area !== "practice" || !loaded || !micEnabled || paused || lastAttempt || listening || postSessionSummary) {
       return;
     }
 
     void startListening();
-  }, [area, lastAttempt, listening, loaded, micEnabled, paused, startListening]);
+  }, [area, lastAttempt, listening, loaded, micEnabled, paused, postSessionSummary, startListening]);
 
   useEffect(() => {
     if (area === "practice" || !listening) {
@@ -589,9 +701,12 @@ export function App(): ReactElement {
           mode={mode}
           onModeChange={setMode}
           onEndSession={endSession}
+          onChangeSessionType={() => setArea("settings")}
           onNext={nextPrompt}
           onPauseToggle={togglePause}
+          onReviewProgress={() => setArea("progress")}
           onRepeat={repeatPrompt}
+          onStartNewSession={startNewSession}
           onStartListening={() => void startListening()}
           onStopListening={() => {
             setMicEnabled(false);
@@ -603,6 +718,7 @@ export function App(): ReactElement {
           listening={listening}
           micEnabled={micEnabled}
           paused={paused}
+          postSessionSummary={postSessionSummary}
           prompt={prompt}
           sessionActiveMs={sessionActiveMs}
           sessionAttemptCount={sessionAttemptIds.length}
@@ -654,15 +770,19 @@ function PracticeArea(props: {
   listening: boolean;
   micEnabled: boolean;
   mode: DrillMode;
+  onChangeSessionType: () => void;
   onModeChange: (mode: DrillMode) => void;
   onEndSession: () => void;
   onNext: () => void;
   onPauseToggle: () => void;
+  onReviewProgress: () => void;
   onRepeat: () => void;
+  onStartNewSession: () => void;
   onStartListening: () => void;
   onStopListening: () => void;
   onToggleFretboard: () => void;
   paused: boolean;
+  postSessionSummary: PostSessionSummary | null;
   prompt: DrillPrompt;
   sessionActiveMs: number;
   sessionAttemptCount: number;
@@ -679,6 +799,24 @@ function PracticeArea(props: {
   const sessionTargetMs = getSessionTargetMs(props.appState.settings.sessionStructure);
   const currentSegment = getCurrentSegment(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const segmentRemainingMs = getSessionSegmentRemainingMs(props.sessionActiveMs, props.appState.settings.sessionStructure);
+
+  if (props.postSessionSummary) {
+    return (
+      <section className="practice-grid">
+        <PostSessionPanel
+          onChangeSessionType={props.onChangeSessionType}
+          onReviewProgress={props.onReviewProgress}
+          onStartNewSession={props.onStartNewSession}
+          summary={props.postSessionSummary}
+        />
+        <aside className="coach-panel">
+          <p className="eyebrow">Coach</p>
+          <h3>Session logged.</h3>
+          <p>Pick the next move deliberately.</p>
+        </aside>
+      </section>
+    );
+  }
 
   return (
     <section className="practice-grid">
@@ -754,6 +892,58 @@ function PracticeArea(props: {
         </p>
         {props.showFretboard && <Fretboard positions={positions} />}
       </aside>
+    </section>
+  );
+}
+
+function PostSessionPanel(props: {
+  onChangeSessionType: () => void;
+  onReviewProgress: () => void;
+  onStartNewSession: () => void;
+  summary: PostSessionSummary;
+}): ReactElement {
+  return (
+    <section className="prompt-panel status-panel">
+      <p className="eyebrow">Session Complete</p>
+      <h2>Logged.</h2>
+      <dl>
+        <div>
+          <dt>Attempts</dt>
+          <dd>{props.summary.attemptCount}</dd>
+        </div>
+        <div>
+          <dt>Accuracy</dt>
+          <dd>{props.summary.accuracyPercent}%</dd>
+        </div>
+        <div>
+          <dt>Average</dt>
+          <dd>{props.summary.averageResponseMs}ms</dd>
+        </div>
+        <div>
+          <dt>Duration</dt>
+          <dd>{formatDuration(props.summary.activePracticeMs)}</dd>
+        </div>
+        <div>
+          <dt>Misses</dt>
+          <dd>{props.summary.resultCounts.wrong_note}</dd>
+        </div>
+        <div>
+          <dt>Too slow</dt>
+          <dd>{props.summary.resultCounts.too_slow}</dd>
+        </div>
+      </dl>
+      <div className="listener-panel">
+        <p className="eyebrow">Next focus</p>
+        <strong>{props.summary.weakestNotes.length === 0 ? "Clean session" : props.summary.weakestNotes.join(", ")}</strong>
+        <span>Based on misses and slow answers from this session.</span>
+      </div>
+      <div className="actions">
+        <button className="primary" onClick={props.onStartNewSession}>
+          Start another session
+        </button>
+        <button onClick={props.onReviewProgress}>Review progress</button>
+        <button onClick={props.onChangeSessionType}>Change session type</button>
+      </div>
     </section>
   );
 }
@@ -1001,6 +1191,45 @@ async function savePersistedState(state: AppState): Promise<void> {
   }
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function buildPostSessionSummary(params: {
+  activePracticeMs: number;
+  attemptIds: string[];
+  attempts: Attempt[];
+  sessionId: string;
+}): PostSessionSummary {
+  const attemptsById = new Map(params.attempts.map((attempt) => [attempt.id, attempt]));
+  const sessionAttempts = params.attemptIds
+    .map((attemptId) => attemptsById.get(attemptId))
+    .filter((attempt): attempt is Attempt => Boolean(attempt));
+  const resultCounts = {
+    pass: sessionAttempts.filter((attempt) => attempt.result === "pass").length,
+    wrong_note: sessionAttempts.filter((attempt) => attempt.result === "wrong_note").length,
+    too_slow: sessionAttempts.filter((attempt) => attempt.result === "too_slow").length
+  };
+  const totalResponseMs = sessionAttempts.reduce((sum, attempt) => sum + attempt.responseMs, 0);
+  const weakNoteScores = new Map<number, number>();
+
+  sessionAttempts.forEach((attempt) => {
+    const penalty = attempt.result === "wrong_note" ? 2 : attempt.result === "too_slow" ? 1 : 0;
+    if (penalty > 0) {
+      weakNoteScores.set(attempt.targetPitchClass, (weakNoteScores.get(attempt.targetPitchClass) ?? 0) + penalty);
+    }
+  });
+
+  return {
+    sessionId: params.sessionId,
+    attemptCount: sessionAttempts.length,
+    accuracyPercent: sessionAttempts.length === 0 ? 0 : Math.round((resultCounts.pass / sessionAttempts.length) * 100),
+    averageResponseMs: sessionAttempts.length === 0 ? 0 : Math.round(totalResponseMs / sessionAttempts.length),
+    activePracticeMs: params.activePracticeMs,
+    resultCounts,
+    weakestNotes: Array.from(weakNoteScores.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([pitchClass]) => getDisplayName(pitchClass))
+  };
 }
 
 function formatDuration(durationMs: number): string {
