@@ -588,3 +588,40 @@ Coverage added:
 Known limitation:
 
 - This verification checks the DOM layout contract and app launch, not a pixel screenshot comparison.
+
+## Latest Verification After Daily Workout String-Only Curriculum
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 70 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app at `http://localhost:5173/`. Dev process was stopped after verification with `pkill -f electron-vite`.
+
+Coverage added:
+
+- Daily Workout prompt selection now returns guided-string prompts from the first focus group.
+- Daily Workout no longer starts note-only and no longer uses a light guided-string blend.
+- E2E now asserts the first Daily Workout prompt has a named string instruction, not `Any string`.
+- String-lane rationale is available from the beginning of Daily Workout.
+
+Known limitation:
+
+- The mic still verifies pitch only. The target string is a curriculum instruction, not detected physical string evidence.

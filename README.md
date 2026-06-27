@@ -10,7 +10,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 
 - Electron + React + TypeScript app shell
 - Standard tuning, right-handed, open-12 fretboard model
-- Note-only and guided-string note prompts
+- Note-only prompts in non-curriculum modes and guided-string note prompts in Daily Workout
 - Microphone listening through the computer
 - Simple monophonic pitch-class detection
 - Stable-note scoring gate to avoid counting pick attack transients as attempts
@@ -36,7 +36,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Curriculum research brief in `CURRICULUM_RESEARCH.md`
 - Pure training diagnosis module for skill states, repeated confusions, slow recall, retention review, and practice prescriptions
 - Daily Workout uses training diagnosis to prioritize weak accuracy, slow recall, repeated confusions, and retention review inside the current focus set
-- Daily Workout can lightly introduce guided-string prompts after the first natural-note focus group is ready
+- Daily Workout is always string-specific, so curriculum practice does not mix target strings with `Any string`
 - Guided-string Daily Workout prompts use a single-string recall lane: one focus string until 3 clean guided passes, then the next string
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
@@ -112,7 +112,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - Loud rooms, chords, low input gain, attack noise, or sustained overtones may still confuse detection.
 - Normal microphone input validates pitch, not the physical fret or string.
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
-- Guided-string practice is intentionally light and string-lane based until it proves useful in real sessions.
+- Daily Workout guided-string practice is intentionally string-lane based so curriculum sessions stay structured.
 - Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
 - Practice should not require clicking before every note; the mic restarts automatically between prompts.
 - Tiger Mode is default-on; turn it off in Settings only if you intentionally want softer practice behavior.

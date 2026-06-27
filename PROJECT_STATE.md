@@ -34,7 +34,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Practice shows a compact prompt-adjacent result badge: `Correct`, `Missed`, `Too slow`, or `Locked until clean`, including the heard note when available.
-- Practice prompt text is split into predictable lines: first line is the note to play, second line is the string instruction (`Any string` or a named string).
+- Practice prompt text is split into predictable lines: first line is the note to play, second line is the string instruction.
 - Practice shows the active curriculum focus set in the session strip.
 - Progress and Session Complete show why Git Neck is choosing the next focus, such as contrast work, accuracy work, speed work, or retention review.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
@@ -51,8 +51,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Pitch estimation now uses a more conservative YIN-style detector instead of the earlier rough autocorrelation peak picker.
 - Daily Workout uses curriculum focus groups instead of the whole level at once: natural notes start with `C, G, D`, then move to `A, E`, then `F, B`; sharps/flats are introduced in small groups.
 - Daily Workout now uses training diagnosis inside the available focus set: repeated confusions, weak accuracy, slow recall, and retention-due notes can bias the next prompt.
-- Daily Workout introduces a light guided-string prompt blend after the first natural focus group is ready; these prompts ask for a string but still verify pitch only.
-- Daily Workout guided-string prompts now use a single-string recall lane: stay on one focus string until 3 clean guided passes, then move to the next string.
+- Daily Workout curriculum prompts are always string-specific. It does not mix in `Any string` prompts.
+- Daily Workout uses a single-string recall lane: stay on one focus string until 3 clean guided passes, then move to the next string.
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
@@ -92,6 +92,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Training methodology is researched and the first pure `training` domain module now feeds Daily Workout selection.
 - Speed and retention are currently represented as diagnosis states over pitch/string skills, not as separate standalone skill IDs.
 - Single-string recall lane is intentionally simple: it starts with the B string and counts clean pitch passes for prompted string work. The mic still does not verify the physical string.
+- Free Drill/Test may still use note-only prompts. Daily Workout is the structured curriculum path and is string-specific.
 - Fretboard visual is useful but intentionally plain.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
@@ -106,8 +107,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - A complete ended 15-minute session with actual guitar has not been completed yet.
 - Whether the conservative tuning tolerance and stable-note gate need adjustment after Robert retests with guitar.
 - Whether idle-silence forgiveness feels right in Robert's room after another real pass.
-- Whether the new single-string recall lane feels useful without true string detection.
+- Whether the always-string-specific Daily Workout feels structured enough in Robert's real practice.
 
 ## Next Recommended Action
 
-Next product step should let Robert test the single-string recall lane after enough C/G/D practice data exists, then decide whether string-specific progress should be exposed in Progress.
+Next product step should let Robert test a real Daily Workout where every prompt has a target string, then decide whether string-specific progress should be exposed in Progress.

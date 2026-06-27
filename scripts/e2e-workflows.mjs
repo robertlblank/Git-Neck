@@ -59,7 +59,7 @@ await check("practice prompt and mode controls exist", async () => {
   await assertVisible("Free Drill");
   await assertVisible("Test");
   await page.locator(".prompt-lines h2").getByText(/^Play [A-G]/).waitFor({ timeout: 5000 });
-  await page.locator(".prompt-lines p").getByText(/string$/).waitFor({ timeout: 5000 });
+  await page.locator(".prompt-lines p").getByText(/^(?!Any string$).+ string$/).waitFor({ timeout: 5000 });
   await page.getByRole("button", { name: "Free Drill" }).click();
   await page.getByRole("button", { name: "Test" }).click();
   await page.getByRole("button", { name: "Daily Workout" }).click();

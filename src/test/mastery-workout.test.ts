@@ -122,7 +122,7 @@ describe("mastery and workout", () => {
     expect(plan.availablePitchClasses).toEqual([0, 7, 2, 9, 4]);
   });
 
-  it("keeps daily workout note-only before the first focus group is ready", () => {
+  it("keeps daily workout string-specific from the first focus group", () => {
     const mastery = createInitialMasteryState();
     const plan = getWorkoutPlan(mastery, 1);
 
@@ -133,10 +133,10 @@ describe("mastery and workout", () => {
         mode: "daily",
         plan
       })
-    ).toEqual(["note"]);
+    ).toEqual(["guided_string_note"]);
   });
 
-  it("adds a light guided-string blend after the first natural focus group is ready", () => {
+  it("keeps daily workout string-specific after the first natural focus group is ready", () => {
     const mastery = createInitialMasteryState();
     [0, 2, 7].forEach((pitchClass) => {
       mastery.byPitchClass[String(pitchClass)].attempts = 1;
@@ -151,15 +151,11 @@ describe("mastery and workout", () => {
         mode: "daily",
         plan
       })
-    ).toEqual(["note", "note", "note", "guided_string_note"]);
+    ).toEqual(["guided_string_note"]);
   });
 
-  it("can select guided-string prompts after the first natural focus group is ready", () => {
+  it("selects guided-string prompts from the start of daily workout", () => {
     const mastery = createInitialMasteryState();
-    [0, 2, 7].forEach((pitchClass) => {
-      mastery.byPitchClass[String(pitchClass)].attempts = 1;
-      mastery.byPitchClass[String(pitchClass)].score = 60;
-    });
 
     const prompts = Array.from({ length: 40 }, (_, index) =>
       selectNextPrompt({
@@ -171,15 +167,11 @@ describe("mastery and workout", () => {
       })
     );
 
-    expect(prompts.some((prompt) => prompt.type === "guided_string_note" && prompt.targetString)).toBe(true);
+    expect(prompts.every((prompt) => prompt.type === "guided_string_note" && prompt.targetString === "B")).toBe(true);
   });
 
   it("keeps daily guided-string prompts on one focus string until clean passes are logged", () => {
     const mastery = createInitialMasteryState();
-    [0, 2, 7].forEach((pitchClass) => {
-      mastery.byPitchClass[String(pitchClass)].attempts = 1;
-      mastery.byPitchClass[String(pitchClass)].score = 60;
-    });
 
     const prompts = Array.from({ length: 40 }, (_, index) =>
       selectNextPrompt({
@@ -229,12 +221,8 @@ describe("mastery and workout", () => {
     });
   });
 
-  it("explains the string lane once guided-string work is eligible", () => {
+  it("explains the string lane from the beginning of daily workout", () => {
     const mastery = createInitialMasteryState();
-    [0, 2, 7].forEach((pitchClass) => {
-      mastery.byPitchClass[String(pitchClass)].attempts = 1;
-      mastery.byPitchClass[String(pitchClass)].score = 60;
-    });
 
     const rationale = getNextWorkoutRationale({
       attempts: [],
@@ -244,6 +232,7 @@ describe("mastery and workout", () => {
     });
 
     expect(rationale.headline).toBe("String lane: B string");
+    expect(rationale.detail).toContain("Current set: C, G, D");
     expect(rationale.detail).toContain("pitch-only");
   });
 

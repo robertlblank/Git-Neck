@@ -25,6 +25,7 @@
 - Ending a session should stop practice and show a deliberate Session Complete state; a new session starts only from an explicit user choice.
 - Correct/miss/slow feedback should appear near the displayed prompt as a compact badge; the side coach is for secondary text.
 - Daily Workout should teach small focus groups before broad recall; Free/Test can stay broader within the current level.
+- Daily Workout curriculum prompts should always be string-specific; do not mix in `Any string` prompts.
 - Training changes should be built through pure diagnosis/prescription modules before changing prompt behavior.
 - Simulated input is debug-only and must not be the primary practice flow.
 - Guided-string prompts verify note correctness only.

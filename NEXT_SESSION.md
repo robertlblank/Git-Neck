@@ -41,7 +41,7 @@ What is working:
 - Settings / Debug shows local audio diagnostics for recent mic attempts: target, heard note, frequency, cents, stable time, and result.
 - Practice hides detailed scoring widgets; scoring happens in the background and trends live in Progress.
 - Practice shows immediate correct/miss/too-slow/locked feedback next to the displayed prompt, including `Heard <note>` when available.
-- Practice prompt text is now stable and two-line: line one says the note to play, line two says `Any string` or the target string.
+- Practice prompt text is now stable and two-line: line one says the note to play, line two says the string instruction.
 - Practice shows the current curriculum focus set.
 - Progress and Session Complete show why Git Neck is choosing the next focus, without putting score details in the active playing view.
 - Correct answers auto-advance; wrong/slow answers repeat the prompt.
@@ -54,8 +54,8 @@ What is working:
 - `CURRICULUM_RESEARCH.md` now captures the research-backed curriculum direction: deliberate practice, mastery learning, retrieval/spaced practice, interleaving, tutoring/student models, modern SRL/gamification findings, app retention risks, and guitar-specific constraints.
 - `src/domain/training.ts` now contains the first pure training diagnosis layer. It assesses pitch-class, string-pitch, and confusion-pair skills; separates weak accuracy from slow recall; detects repeated confusions and retention review; and returns active/review/contrast/expand prescriptions.
 - Daily Workout now passes attempt history into workout selection and uses training diagnosis to bias prompts toward repeated confusions, weak accuracy, slow recall, and retention review while preserving the current small focus groups.
-- Daily Workout now lightly blends guided-string prompts after the first natural focus group is ready. This remains honest: the prompt asks for a string, but the mic verifies pitch only.
-- Daily Workout guided-string prompts now use a single-string recall lane: start on one focus string, require 3 clean guided passes, then move to the next string. Misses and slow hits do not count as clean string-lane progress.
+- Daily Workout curriculum prompts are now always string-specific. It does not mix `Any string` prompts into the curriculum.
+- Daily Workout uses a single-string recall lane: start on one focus string, require 3 clean guided passes, then move to the next string. Misses and slow hits do not count as clean string-lane progress.
 - Completed session trends are shown in Progress.
 - Sessions are persisted while active, marked completed on `End session`, and recovered as interrupted if the app stops mid-session.
 - Empty sessions are not saved, so Progress should only show sessions with attempts.
@@ -77,16 +77,17 @@ What not to touch:
 - Do not claim normal microphone audio can prove the physical fret/string.
 - Keep tuning tolerance conservative; do not add a big calibration workflow unless Robert asks.
 - Do not reintroduce per-note click-through.
+- Do not reintroduce `Any string` prompts into Daily Workout curriculum practice.
 - Do not let wrong/slow answers silently advance in default practice.
 - Do not count long quiet interruptions as slow attempts.
 - Do not add backend/cloud analytics unless Robert explicitly changes the local-only decision. Usage tracking is currently local-first.
 
 Exact next task:
-Have Robert run one real mic practice session and validate the single-string recall lane:
+Have Robert run one real mic Daily Workout and validate the always-string-specific curriculum:
 1. Run `npm run dev`.
-2. Practice enough Daily Workout prompts that C/G/D have real data and the next focus group unlocks.
+2. Confirm every Daily Workout prompt has a target string from the beginning.
 3. End the session.
-4. Watch whether guided-string prompts begin appearing occasionally and stay on the same focus string until clean passes build.
+4. Watch whether prompts stay on the same focus string until clean passes build.
 5. Confirm the UI does not imply the mic verified the string.
 6. If guided-string prompts feel good, expose string-specific progress next.
 7. If false misses return, inspect Settings / Debug audio diagnostics before tuning thresholds.

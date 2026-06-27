@@ -97,8 +97,8 @@ export function getDrillTypesForPrompt(params: {
   mode: "daily" | "free" | "test";
   plan: WorkoutPlan;
 }): DrillPrompt["type"][] {
-  if (params.mode === "daily" && isGuidedStringLaneReady(params.currentLevel, params.plan)) {
-    return ["note", "note", "note", "guided_string_note"];
+  if (params.mode === "daily") {
+    return ["guided_string_note"];
   }
 
   return params.levelDrillTypes;
@@ -204,22 +204,15 @@ export function getNextWorkoutRationale(params: {
     };
   }
 
-  if (isGuidedStringLaneReady(params.currentLevel, plan)) {
-    const focus = getGuidedStringFocus({
-      attempts: params.attempts,
-      availablePitchClasses: plan.availablePitchClasses
-    });
-
-    return {
-      headline: `String lane: ${formatStringName(focus.stringName)} string`,
-      detail: `Occasional guided prompts will stay on this string until ${focus.targetCleanPasses} clean passes. Mic scoring is still pitch-only.`
-    };
-  }
+  const focus = getGuidedStringFocus({
+    attempts: params.attempts,
+    availablePitchClasses: plan.availablePitchClasses
+  });
 
   const active = plan.activePitchClasses.map((pitchClass) => PITCH_CLASSES[pitchClass].displayName).join(", ");
   return {
-    headline: `Current set: ${active}`,
-    detail: "No sharp weakness is leading yet. Keep building the current set."
+    headline: `String lane: ${formatStringName(focus.stringName)} string`,
+    detail: `Current set: ${active}. Daily Workout stays on this string until ${focus.targetCleanPasses} clean passes. Mic scoring is still pitch-only.`
   };
 }
 
@@ -323,10 +316,6 @@ function formatAssessmentLabels(assessments: TrainingSkillAssessment[]): string 
 
 function isFocusGroupReady(group: number[], mastery: MasteryState): boolean {
   return group.every((pitchClass) => isPitchReady(mastery.byPitchClass[String(pitchClass)]));
-}
-
-function isGuidedStringLaneReady(currentLevel: number, plan: WorkoutPlan): boolean {
-  return currentLevel === 1 && plan.reviewPitchClasses.length > 0;
 }
 
 function isPitchReady(mastery: PitchMastery | undefined): boolean {
