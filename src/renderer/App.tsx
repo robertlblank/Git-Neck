@@ -1080,9 +1080,12 @@ function PracticeArea(props: {
         </div>
         <p className="timer">{props.paused ? "Paused" : `${Math.round(props.elapsedMs / 100) / 10}s`}</p>
         <div className="prompt-target">
-          <div className="prompt-lines" aria-label={`Play ${props.prompt.targetDisplayName}. ${promptStringInstruction}.`}>
-            <h2>Play {props.prompt.targetDisplayName}</h2>
-            <p>{promptStringInstruction}</p>
+          <div className="prompt-lines" aria-label={`Note ${props.prompt.targetDisplayName}. String ${promptStringInstruction}.`}>
+            <div>
+              <span>Note</span>
+              <h2>{props.prompt.targetDisplayName}</h2>
+            </div>
+            <p><span>String</span>{promptStringInstruction}</p>
           </div>
           {promptResult && (
             <div className={`prompt-result ${promptResult.tone}`} aria-live="polite">

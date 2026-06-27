@@ -41,7 +41,7 @@ What is working:
 - Settings / Debug shows local audio diagnostics for recent mic attempts: target, heard note, frequency, cents, stable time, and result.
 - Practice hides detailed scoring widgets; scoring happens in the background and trends live in Progress.
 - Practice shows immediate correct/miss/too-slow/locked feedback next to the displayed prompt, including `Heard <note>` when available.
-- Practice prompt text is now stable and two-line: line one says the note to play, line two says the string instruction.
+- Practice prompt text uses explicit labels: `Note` for the target note and `String` for the string instruction.
 - Practice shows the current curriculum focus set.
 - Progress and Session Complete show why Git Neck is choosing the next focus, without putting score details in the active playing view.
 - Correct answers auto-advance; wrong/slow answers repeat the prompt.

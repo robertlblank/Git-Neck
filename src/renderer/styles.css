@@ -131,7 +131,7 @@ button.small {
 
 .prompt-lines {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .prompt-lines h2 {
@@ -139,11 +139,28 @@ button.small {
 }
 
 .prompt-lines p {
+  align-items: baseline;
   color: #6e3d2a;
+  display: flex;
   font-size: clamp(1.8rem, 4vw, 3.2rem);
+  gap: 14px;
   font-weight: 800;
   line-height: 1.05;
   margin: 0;
+}
+
+.prompt-lines span {
+  color: #6e3d2a;
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.prompt-lines p span {
+  margin-bottom: 0;
 }
 
 .prompt-result {

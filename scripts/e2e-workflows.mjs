@@ -62,8 +62,9 @@ await check("practice prompt and mode controls exist", async () => {
   await assertVisible("Free Drill");
   await assertVisible("Test");
   await page.getByRole("button", { name: "Start Practice" }).click();
-  await page.locator(".prompt-lines h2").getByText(/^Play [A-G]/).waitFor({ timeout: 5000 });
-  await page.locator(".prompt-lines p").getByText(/^(?!Any string$).+ string$/).waitFor({ timeout: 5000 });
+  await page.locator(".prompt-lines").getByText("Note").waitFor({ timeout: 5000 });
+  await page.locator(".prompt-lines h2").getByText(/^[A-G]/).waitFor({ timeout: 5000 });
+  await page.locator(".prompt-lines p").getByText(/String(?!Any string$).+ string$/).waitFor({ timeout: 5000 });
   await page.getByRole("button", { name: "Free Drill" }).click();
   await page.getByRole("button", { name: "Test" }).click();
   await page.getByRole("button", { name: "Daily Workout" }).click();
@@ -110,7 +111,7 @@ await check("microphone stays available without per-note click", async () => {
 
 await check("settings and debug simulated scoring work", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
-  const promptText = await page.locator(".prompt-panel h2").innerText();
+  const promptText = await page.locator(".prompt-lines").innerText();
   const targetNote = getTargetNoteForPrompt(promptText);
   const wrongNote = getWrongNoteForPrompt(promptText);
 
@@ -140,7 +141,7 @@ await check("settings and debug simulated scoring work", async () => {
 await check("ending a session creates a trend entry", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
   await page.getByRole("button", { name: "Repeat" }).click();
-  const promptText = await page.locator(".prompt-panel h2").innerText();
+  const promptText = await page.locator(".prompt-lines").innerText();
   const targetNote = getTargetNoteForPrompt(promptText);
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await scoreDebugNoteAndWaitForActiveSessionAttempt(targetNote);
@@ -306,7 +307,7 @@ function getWrongNoteForPrompt(promptText) {
 }
 
 function getTargetNoteForPrompt(promptText) {
-  const match = promptText.match(/Play ([A-G](?:#\/[A-G]b)?)/);
+  const match = promptText.match(/note\s+([A-G](?:#\/[A-G]b)?)/i);
   assert(match, `Could not parse prompt note from: ${promptText}`);
   return match[1];
 }
