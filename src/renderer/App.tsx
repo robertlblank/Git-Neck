@@ -10,7 +10,7 @@ import {
   type PitchDetection
 } from "../domain/audio";
 import { FORCE_UNLOCK_WARNING, getCurrentLevel } from "../domain/curriculum";
-import { renderPrompt } from "../domain/drills";
+import { formatStringName } from "../domain/drills";
 import { generateFretboard } from "../domain/fretboard";
 import {
   averageResponseMs,
@@ -853,6 +853,10 @@ function PracticeArea(props: {
   const currentSegment = getCurrentSegment(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const segmentRemainingMs = getSessionSegmentRemainingMs(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const promptResult = getPromptResult(props.lastAttempt, props.tigerLocked);
+  const promptStringInstruction =
+    props.prompt.type === "guided_string_note" && props.prompt.targetString
+      ? `${formatStringName(props.prompt.targetString)} string`
+      : "Any string";
 
   if (props.postSessionSummary) {
     return (
@@ -916,7 +920,10 @@ function PracticeArea(props: {
         </div>
         <p className="timer">{props.paused ? "Paused" : `${Math.round(props.elapsedMs / 100) / 10}s`}</p>
         <div className="prompt-target">
-          <h2>{renderPrompt(props.prompt)}</h2>
+          <div className="prompt-lines" aria-label={`Play ${props.prompt.targetDisplayName}. ${promptStringInstruction}.`}>
+            <h2>Play {props.prompt.targetDisplayName}</h2>
+            <p>{promptStringInstruction}</p>
+          </div>
           {promptResult && (
             <div className={`prompt-result ${promptResult.tone}`} aria-live="polite">
               <strong>{promptResult.label}</strong>

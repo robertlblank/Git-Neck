@@ -129,6 +129,23 @@ button.small {
   gap: 12px;
 }
 
+.prompt-lines {
+  display: grid;
+  gap: 8px;
+}
+
+.prompt-lines h2 {
+  white-space: nowrap;
+}
+
+.prompt-lines p {
+  color: #6e3d2a;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.05;
+  margin: 0;
+}
+
 .prompt-result {
   align-items: center;
   border: 1px solid #ddd7ca;

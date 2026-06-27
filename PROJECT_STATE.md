@@ -34,6 +34,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Practice shows a compact prompt-adjacent result badge: `Correct`, `Missed`, `Too slow`, or `Locked until clean`, including the heard note when available.
+- Practice prompt text is split into predictable lines: first line is the note to play, second line is the string instruction (`Any string` or a named string).
 - Practice shows the active curriculum focus set in the session strip.
 - Progress and Session Complete show why Git Neck is choosing the next focus, such as contrast work, accuracy work, speed work, or retention review.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.

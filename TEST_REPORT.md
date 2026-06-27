@@ -554,3 +554,37 @@ Coverage added:
 Known limitation:
 
 - The mic still verifies pitch only. Guided-string prompts constrain the intended practice string, not the detected physical string.
+
+## Latest Verification After Two-Line Prompt Layout
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 70 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was occupied. Dev process was stopped after verification with `pkill -f electron-vite`.
+
+Coverage added:
+
+- Practice prompt layout is asserted in E2E: the first line starts with `Play <note>` and the second line ends with `string`.
+
+Known limitation:
+
+- This verification checks the DOM layout contract and app launch, not a pixel screenshot comparison.
