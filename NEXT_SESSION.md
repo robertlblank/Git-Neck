@@ -35,7 +35,7 @@ Run:
 
 What is working:
 - The app is audio-first and branded Git Neck.
-- Practice uses Start listening as the primary action.
+- Practice opens to a Practice Ready state. The timer and microphone do not start until the user presses `Start Practice`.
 - The app requests microphone input, estimates one monophonic pitch, applies conservative session-relative tuning tolerance, scores automatically, updates mastery, and shows feedback.
 - Microphone scoring waits for a stable pitch before submitting an attempt, reducing false misses from pick attack transients.
 - Settings / Debug shows local audio diagnostics for recent mic attempts: target, heard note, frequency, cents, stable time, and result.
@@ -46,7 +46,7 @@ What is working:
 - Progress and Session Complete show why Git Neck is choosing the next focus, without putting score details in the active playing view.
 - Correct answers auto-advance; wrong/slow answers repeat the prompt.
 - Tiger Mode is default-on and locks missed/too-slow prompts until a clean pass; old v1 local state migrates to this default.
-- The microphone starts/restarts automatically between prompts; per-note clicking is not part of the intended flow.
+- After `Start Practice`, the microphone starts/restarts automatically between prompts; per-note clicking is not part of the intended flow.
 - Pause/resume excludes break time from response scoring and active session time.
 - Idle silence over 5 seconds is excluded from response timing so quiet interruptions do not become slow attempts.
 - Practice can be structured as 1 x 15, 3 x 5, or 5 x 3.
@@ -57,6 +57,7 @@ What is working:
 - Daily Workout curriculum prompts are now always string-specific. It does not mix `Any string` prompts into the curriculum.
 - Daily Workout uses a single-string recall lane: start on one focus string, require 3 clean guided passes, then move to the next string. Misses and slow hits do not count as clean string-lane progress.
 - Completed session trends are shown in Progress.
+- Progress includes a curriculum position panel with current level, string lane, note set, and clean-pass progress.
 - Sessions are persisted while active, marked completed on `End session`, and recovered as interrupted if the app stops mid-session.
 - Empty sessions are not saved, so Progress should only show sessions with attempts.
 - Ending a session now stops practice and shows a Session Complete summary with attempts, accuracy, average response, duration, misses, slow answers, next focus, and choices for `Start another session`, `Review progress`, and `Change session type`.
@@ -77,19 +78,20 @@ What not to touch:
 - Do not claim normal microphone audio can prove the physical fret/string.
 - Keep tuning tolerance conservative; do not add a big calibration workflow unless Robert asks.
 - Do not reintroduce per-note click-through.
+- Do not auto-start the timer or microphone when the app opens.
 - Do not reintroduce `Any string` prompts into Daily Workout curriculum practice.
 - Do not let wrong/slow answers silently advance in default practice.
 - Do not count long quiet interruptions as slow attempts.
 - Do not add backend/cloud analytics unless Robert explicitly changes the local-only decision. Usage tracking is currently local-first.
 
 Exact next task:
-Have Robert run one real mic Daily Workout and validate the always-string-specific curriculum:
+Have Robert run one real mic Daily Workout and validate the Practice Ready flow plus the always-string-specific curriculum:
 1. Run `npm run dev`.
-2. Confirm every Daily Workout prompt has a target string from the beginning.
-3. End the session.
-4. Watch whether prompts stay on the same focus string until clean passes build.
-5. Confirm the UI does not imply the mic verified the string.
-6. If guided-string prompts feel good, expose string-specific progress next.
+2. Confirm the app opens without a running timer or mic.
+3. Press `Start Practice`.
+4. Confirm every Daily Workout prompt has a target string from the beginning.
+5. End the session.
+6. Check Progress and confirm the curriculum position panel is useful.
 7. If false misses return, inspect Settings / Debug audio diagnostics before tuning thresholds.
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.

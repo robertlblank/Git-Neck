@@ -22,6 +22,7 @@
 - Slight tuning drift is handled by a conservative session-relative offset learned over multiple accepted notes.
 - Paused time does not count against response time or active session time.
 - Practice can be structured as `1 x 15`, `3 x 5`, or `5 x 3`.
+- Opening the app must not start the timer or microphone. The user explicitly starts practice from the ready state.
 - Ending a session should stop practice and show a deliberate Session Complete state; a new session starts only from an explicit user choice.
 - Correct/miss/slow feedback should appear near the displayed prompt as a compact badge; the side coach is for secondary text.
 - Daily Workout should teach small focus groups before broad recall; Free/Test can stay broader within the current level.

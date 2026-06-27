@@ -30,8 +30,9 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 ## What Works
 
 - Electron + React + TypeScript app scaffold.
-- Practice area with prompt, start/stop listening, microphone status, detected note display, scoring, feedback, streak, timer, repeat, next, end session, and fretboard reveal.
-- Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
+- Practice area with a Practice Ready state, prompt, start/stop listening, microphone status, detected note display, scoring, feedback, streak, timer, repeat, next, end session, and fretboard reveal.
+- Practice does not start the timer or microphone on app open. The user must choose `Start Practice`.
+- After `Start Practice`, Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Practice shows a compact prompt-adjacent result badge: `Correct`, `Missed`, `Too slow`, or `Locked until clean`, including the heard note when available.
 - Practice prompt text is split into predictable lines: first line is the note to play, second line is the string instruction.
@@ -54,7 +55,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Daily Workout curriculum prompts are always string-specific. It does not mix in `Any string` prompts.
 - Daily Workout uses a single-string recall lane: stay on one focus string until 3 clean guided passes, then move to the next string.
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
-- Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
+- Progress area with curriculum position, current level, current string lane, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
 - Settings / Debug includes microphone audio diagnostics for recent scored mic attempts: target, heard note, frequency, cents, stable time, and result.
 - Pure domain modules for notes, fretboard, audio helpers, sessions, drills, scoring, coaching, mastery, curriculum, workout, and training diagnosis.
@@ -107,8 +108,9 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - A complete ended 15-minute session with actual guitar has not been completed yet.
 - Whether the conservative tuning tolerance and stable-note gate need adjustment after Robert retests with guitar.
 - Whether idle-silence forgiveness feels right in Robert's room after another real pass.
+- Whether the Practice Ready screen reduces timer anxiety in real use.
 - Whether the always-string-specific Daily Workout feels structured enough in Robert's real practice.
 
 ## Next Recommended Action
 
-Next product step should let Robert test a real Daily Workout where every prompt has a target string, then decide whether string-specific progress should be exposed in Progress.
+Next product step should let Robert test starting from Practice Ready, then run a real Daily Workout where every prompt has a target string and confirm the curriculum position panel feels useful.

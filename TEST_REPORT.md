@@ -625,3 +625,41 @@ Coverage added:
 Known limitation:
 
 - The mic still verifies pitch only. The target string is a curriculum instruction, not detected physical string evidence.
+
+## Latest Verification After Practice Ready And Curriculum Position
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 70 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app at `http://localhost:5173/`. Dev process was stopped after verification with `pkill -f electron-vite`.
+
+Coverage added:
+
+- Practice opens in a `Practice Ready` state.
+- The timer and microphone do not start before `Start Practice`.
+- `Start Practice` begins the normal prompt/listening workflow.
+- Session completion can return to a ready state instead of immediately starting another timer.
+- Progress shows curriculum position: current level, string lane, note set, and clean-pass progress.
+
+Known limitation:
+
+- The curriculum position panel is a first simple orientation view, not a full skill map or heatmap.

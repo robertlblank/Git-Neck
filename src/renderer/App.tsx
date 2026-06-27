@@ -35,7 +35,13 @@ import {
   SESSION_STRUCTURES
 } from "../domain/sessions";
 import type { AppState, Attempt, AttemptAudioDiagnostic, AttemptSource, DrillMode, DrillPrompt, Settings } from "../domain/types";
-import { getNextWorkoutFocus, getNextWorkoutRationale, getWorkoutPlan, selectNextPrompt } from "../domain/workout";
+import {
+  getGuidedStringFocus,
+  getNextWorkoutFocus,
+  getNextWorkoutRationale,
+  getWorkoutPlan,
+  selectNextPrompt
+} from "../domain/workout";
 import { createDefaultAppState, normalizeAppState } from "../persistence/schema";
 
 type Area = "practice" | "progress" | "settings";
@@ -76,14 +82,15 @@ export function App(): ReactElement {
     })
   );
   const [debugPitchClass, setDebugPitchClass] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState("Mic starts automatically. Play the note.");
+  const [feedback, setFeedback] = useState("Press Start Practice when you are ready.");
   const [showFretboard, setShowFretboard] = useState(false);
   const [lastAttempt, setLastAttempt] = useState<Attempt | null>(null);
   const [missLockedPrompt, setMissLockedPrompt] = useState<DrillPrompt | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [paused, setPaused] = useState(false);
   const [statePath, setStatePath] = useState<string | null>(null);
-  const [micEnabled, setMicEnabled] = useState(true);
+  const [practiceStarted, setPracticeStarted] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
   const [listening, setListening] = useState(false);
   const [audioStatus, setAudioStatus] = useState("Microphone idle.");
   const [detectedPitch, setDetectedPitch] = useState<PitchDetection | null>(null);
@@ -166,7 +173,7 @@ export function App(): ReactElement {
   }, [appState, loaded]);
 
   useEffect(() => {
-    if (paused || lastAttempt) {
+    if (!practiceStarted || paused || lastAttempt) {
       return;
     }
 
@@ -175,10 +182,10 @@ export function App(): ReactElement {
     }, 100);
 
     return () => clearInterval(timer);
-  }, [lastAttempt, paused, prompt.createdAtMs]);
+  }, [lastAttempt, paused, practiceStarted, prompt.createdAtMs]);
 
   useEffect(() => {
-    if (paused) {
+    if (!practiceStarted || paused) {
       return;
     }
 
@@ -187,7 +194,7 @@ export function App(): ReactElement {
     }, 500);
 
     return () => clearInterval(timer);
-  }, [paused, sessionPausedMs, sessionStartedAtMs]);
+  }, [paused, practiceStarted, sessionPausedMs, sessionStartedAtMs]);
 
   const stopListening = useCallback((nextStatus = "Microphone idle.") => {
     listeningGenerationRef.current += 1;
@@ -206,7 +213,7 @@ export function App(): ReactElement {
     setAudioStatus(nextStatus);
   }, []);
 
-  const startNewSession = useCallback(() => {
+  const resetPracticePlan = useCallback(() => {
     const nowMs = Date.now();
     setPostSessionSummary(null);
     setSessionStartedAtMs(nowMs);
@@ -224,8 +231,42 @@ export function App(): ReactElement {
     setDetectedPitch(null);
     setElapsedMs(0);
     setPaused(false);
-    setFeedback("Mic starts automatically. Play the note.");
+    setFeedback("Press Start Practice when you are ready.");
+    setPracticeStarted(false);
+    setMicEnabled(false);
+    stopListening();
+    setPrompt(
+      selectNextPrompt({
+        mastery: appState.mastery,
+        currentLevel: appState.currentLevel,
+        nowMs,
+        mode,
+        attempts: appState.attempts
+      })
+    );
+  }, [appState.attempts, appState.currentLevel, appState.mastery, mode, stopListening]);
+
+  const beginPractice = useCallback(() => {
+    const nowMs = Date.now();
+    setPostSessionSummary(null);
+    setSessionStartedAtMs(nowMs);
+    setSessionPausedMs(0);
+    setSessionPauseStartedAtMs(null);
+    setSessionActiveMs(0);
+    setCurrentSessionId(null);
+    currentSessionIdRef.current = null;
+    setSessionAttemptIds([]);
+    sessionAttemptIdsRef.current = [];
+    setMissLockedPrompt(null);
+    setSessionTuningOffsetCents(0);
+    setSessionTuningSamples(0);
+    setLastAttempt(null);
+    setDetectedPitch(null);
+    setElapsedMs(0);
+    setPaused(false);
+    setPracticeStarted(true);
     setMicEnabled(true);
+    setFeedback("Mic starts automatically. Play the note.");
     setPrompt(
       selectNextPrompt({
         mastery: appState.mastery,
@@ -238,7 +279,7 @@ export function App(): ReactElement {
   }, [appState.attempts, appState.currentLevel, appState.mastery, mode]);
 
   const nextPrompt = useCallback(() => {
-    if (postSessionSummary) {
+    if (postSessionSummary || !practiceStarted) {
       return;
     }
 
@@ -286,12 +327,13 @@ export function App(): ReactElement {
     missLockedPrompt,
     mode,
     postSessionSummary,
+    practiceStarted,
     sessionPauseStartedAtMs,
     stopListening
   ]);
 
   const repeatPrompt = useCallback(() => {
-    if (postSessionSummary) {
+    if (postSessionSummary || !practiceStarted) {
       return;
     }
 
@@ -308,10 +350,17 @@ export function App(): ReactElement {
     setFeedback("Same prompt.");
     setShowFretboard(appState.settings.revealFretboardDefault);
     setPaused(false);
-  }, [appState.settings.revealFretboardDefault, postSessionSummary, prompt, sessionPauseStartedAtMs, stopListening]);
+  }, [
+    appState.settings.revealFretboardDefault,
+    postSessionSummary,
+    practiceStarted,
+    prompt,
+    sessionPauseStartedAtMs,
+    stopListening
+  ]);
 
   const scoreDetectedPitch = useCallback((pitchClass: number, source: AttemptSource, audioDiagnostic?: AttemptAudioDiagnostic) => {
-    if (postSessionSummary) {
+    if (postSessionSummary || !practiceStarted) {
       return;
     }
 
@@ -367,6 +416,7 @@ export function App(): ReactElement {
   }, [
     mode,
     prompt,
+    practiceStarted,
     sessionPauseStartedAtMs,
     sessionPausedMs,
     sessionStartedAtMs,
@@ -374,6 +424,10 @@ export function App(): ReactElement {
   ]);
 
   const togglePause = useCallback(() => {
+    if (!practiceStarted) {
+      return;
+    }
+
     if (paused) {
       const pauseDurationMs = sessionPauseStartedAtMs === null ? 0 : Date.now() - sessionPauseStartedAtMs;
       setPrompt((currentPrompt) => ({
@@ -390,7 +444,7 @@ export function App(): ReactElement {
     stopListening("Paused. Timer stopped.");
     setSessionPauseStartedAtMs(Date.now());
     setPaused(true);
-  }, [paused, sessionPauseStartedAtMs, stopListening]);
+  }, [paused, practiceStarted, sessionPauseStartedAtMs, stopListening]);
 
   const endSession = useCallback(() => {
     stopListening();
@@ -471,6 +525,7 @@ export function App(): ReactElement {
     setPaused(false);
     setFeedback(hasAttempts ? "Session saved." : "No attempts to save. Start clean.");
     setMicEnabled(false);
+    setPracticeStarted(false);
   }, [
     mode,
     sessionPauseStartedAtMs,
@@ -481,7 +536,7 @@ export function App(): ReactElement {
 
   const startListening = useCallback(async () => {
     try {
-      if (listening || paused || lastAttempt || postSessionSummary) {
+      if (!practiceStarted || listening || paused || lastAttempt || postSessionSummary) {
         return;
       }
 
@@ -634,6 +689,7 @@ export function App(): ReactElement {
     listening,
     paused,
     postSessionSummary,
+    practiceStarted,
     prompt.targetPitchClass,
     scoreDetectedPitch,
     sessionTuningOffsetCents,
@@ -644,12 +700,21 @@ export function App(): ReactElement {
   useEffect(() => stopListening, [stopListening]);
 
   useEffect(() => {
-    if (area !== "practice" || !loaded || !micEnabled || paused || lastAttempt || listening || postSessionSummary) {
+    if (
+      area !== "practice" ||
+      !loaded ||
+      !practiceStarted ||
+      !micEnabled ||
+      paused ||
+      lastAttempt ||
+      listening ||
+      postSessionSummary
+    ) {
       return;
     }
 
     void startListening();
-  }, [area, lastAttempt, listening, loaded, micEnabled, paused, postSessionSummary, startListening]);
+  }, [area, lastAttempt, listening, loaded, micEnabled, paused, postSessionSummary, practiceStarted, startListening]);
 
   useEffect(() => {
     if (area === "practice" || !listening) {
@@ -667,7 +732,9 @@ export function App(): ReactElement {
 
       if (event.code === "Space") {
         event.preventDefault();
-        if (listening) {
+        if (!practiceStarted) {
+          beginPractice();
+        } else if (listening) {
           setMicEnabled(false);
           stopListening();
         } else {
@@ -679,7 +746,9 @@ export function App(): ReactElement {
       } else if (event.key.toLowerCase() === "f") {
         setShowFretboard((value) => !value);
       } else if (event.key === "Enter") {
-        if (lastAttempt) {
+        if (!practiceStarted) {
+          beginPractice();
+        } else if (lastAttempt) {
           nextPrompt();
         } else {
           void startListening();
@@ -691,10 +760,20 @@ export function App(): ReactElement {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lastAttempt, listening, nextPrompt, repeatPrompt, startListening, stopListening, togglePause]);
+  }, [
+    beginPractice,
+    lastAttempt,
+    listening,
+    nextPrompt,
+    practiceStarted,
+    repeatPrompt,
+    startListening,
+    stopListening,
+    togglePause
+  ]);
 
   useEffect(() => {
-    if (area !== "practice" || !lastAttempt || paused) {
+    if (area !== "practice" || !practiceStarted || !lastAttempt || paused) {
       return;
     }
 
@@ -707,12 +786,16 @@ export function App(): ReactElement {
     }, lastAttempt.result === "pass" ? 900 : 1300);
 
     return () => clearTimeout(timer);
-  }, [area, lastAttempt, nextPrompt, paused, repeatPrompt]);
+  }, [area, lastAttempt, nextPrompt, paused, practiceStarted, repeatPrompt]);
 
   const level = getCurrentLevel(appState.currentLevel);
   const recentAttempts = appState.attempts.slice(-8).reverse();
   const workoutPlan = getWorkoutPlan(appState.mastery, appState.currentLevel);
   const activeFocusSet = workoutPlan.activePitchClasses.map((pitchClass) => getDisplayName(pitchClass)).join(", ");
+  const guidedStringFocus = getGuidedStringFocus({
+    attempts: appState.attempts,
+    availablePitchClasses: workoutPlan.availablePitchClasses
+  });
   const nextWorkoutRationale = getNextWorkoutRationale({
     attempts: appState.attempts,
     currentLevel: appState.currentLevel,
@@ -749,14 +832,16 @@ export function App(): ReactElement {
           lastAttempt={lastAttempt}
           mode={mode}
           nextWorkoutRationale={nextWorkoutRationale}
+          guidedStringFocus={guidedStringFocus}
           onModeChange={setMode}
           onEndSession={endSession}
           onChangeSessionType={() => setArea("settings")}
+          onBeginPractice={beginPractice}
           onNext={nextPrompt}
           onPauseToggle={togglePause}
           onReviewProgress={() => setArea("progress")}
           onRepeat={repeatPrompt}
-          onStartNewSession={startNewSession}
+          onStartNewSession={resetPracticePlan}
           onStartListening={() => void startListening()}
           onStopListening={() => {
             setMicEnabled(false);
@@ -769,6 +854,7 @@ export function App(): ReactElement {
           micEnabled={micEnabled}
           paused={paused}
           postSessionSummary={postSessionSummary}
+          practiceStarted={practiceStarted}
           prompt={prompt}
           sessionActiveMs={sessionActiveMs}
           sessionAttemptCount={sessionAttemptIds.length}
@@ -782,7 +868,9 @@ export function App(): ReactElement {
       {area === "progress" && (
         <ProgressArea
           appState={appState}
+          activeFocusSet={activeFocusSet}
           currentLevelName={level.name}
+          guidedStringFocus={guidedStringFocus}
           nextWorkoutFocus={getNextWorkoutFocus(appState.mastery, appState.currentLevel)}
           nextWorkoutRationale={nextWorkoutRationale}
           recentAttempts={recentAttempts}
@@ -818,11 +906,13 @@ function PracticeArea(props: {
   detectedPitch: PitchDetection | null;
   elapsedMs: number;
   feedback: string;
+  guidedStringFocus: ReturnType<typeof getGuidedStringFocus>;
   lastAttempt: Attempt | null;
   listening: boolean;
   micEnabled: boolean;
   mode: DrillMode;
   nextWorkoutRationale: ReturnType<typeof getNextWorkoutRationale>;
+  onBeginPractice: () => void;
   onChangeSessionType: () => void;
   onModeChange: (mode: DrillMode) => void;
   onEndSession: () => void;
@@ -836,6 +926,7 @@ function PracticeArea(props: {
   onToggleFretboard: () => void;
   paused: boolean;
   postSessionSummary: PostSessionSummary | null;
+  practiceStarted: boolean;
   prompt: DrillPrompt;
   sessionActiveMs: number;
   sessionAttemptCount: number;
@@ -853,6 +944,7 @@ function PracticeArea(props: {
   const currentSegment = getCurrentSegment(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const segmentRemainingMs = getSessionSegmentRemainingMs(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const promptResult = getPromptResult(props.lastAttempt, props.tigerLocked);
+  const level = getCurrentLevel(props.appState.currentLevel);
   const promptStringInstruction =
     props.prompt.type === "guided_string_note" && props.prompt.targetString
       ? `${formatStringName(props.prompt.targetString)} string`
@@ -872,6 +964,74 @@ function PracticeArea(props: {
           <p className="eyebrow">Coach</p>
           <h3>Session logged.</h3>
           <p>Pick the next move deliberately.</p>
+        </aside>
+      </section>
+    );
+  }
+
+  if (!props.practiceStarted) {
+    return (
+      <section className="practice-grid">
+        <div className="prompt-panel status-panel ready-panel">
+          <div className="mode-row">
+            {(["daily", "free", "test"] as DrillMode[]).map((mode) => (
+              <button
+                className={props.mode === mode ? "active small" : "small"}
+                key={mode}
+                onClick={() => props.onModeChange(mode)}
+              >
+                {mode === "daily" ? "Daily Workout" : mode === "free" ? "Free Drill" : "Test"}
+              </button>
+            ))}
+          </div>
+          <div>
+            <p className="eyebrow">Practice Ready</p>
+            <h2>Today's work</h2>
+          </div>
+          <div className="session-strip ready-strip">
+            <div>
+              <p className="eyebrow">Level</p>
+              <strong>{props.appState.currentLevel}</strong>
+              <span>{level.name}</span>
+            </div>
+            <div>
+              <p className="eyebrow">String lane</p>
+              <strong>{formatStringName(props.guidedStringFocus.stringName)}</strong>
+              <span>{props.guidedStringFocus.cleanPasses} / {props.guidedStringFocus.targetCleanPasses} clean</span>
+            </div>
+            <div>
+              <p className="eyebrow">Notes</p>
+              <strong>{props.activeFocusSet}</strong>
+              <span>Current set</span>
+            </div>
+            <div>
+              <p className="eyebrow">Session</p>
+              <strong>{sessionConfig.segmentCount} x {sessionConfig.segmentDurationMinutes}</strong>
+              <span>{sessionConfig.label}</span>
+            </div>
+            <div>
+              <p className="eyebrow">Goal</p>
+              <strong>{props.guidedStringFocus.targetCleanPasses} clean</strong>
+              <span>Then next string</span>
+            </div>
+          </div>
+          <div className="listener-panel">
+            <p className="eyebrow">Why this focus</p>
+            <strong>{props.nextWorkoutRationale.headline}</strong>
+            <span>{props.nextWorkoutRationale.detail}</span>
+          </div>
+          <div className="actions">
+            <button className="primary" onClick={props.onBeginPractice}>
+              Start Practice
+            </button>
+            <button onClick={props.onReviewProgress}>Review Progress</button>
+            <button onClick={props.onChangeSessionType}>Change Session Type</button>
+          </div>
+        </div>
+        <aside className="coach-panel">
+          <p className="eyebrow">Coach</p>
+          <h3>Timer is stopped.</h3>
+          <p>Start when your hands are on the guitar and you are ready to work.</p>
         </aside>
       </section>
     );
@@ -1055,8 +1215,10 @@ function Fretboard(props: { positions: ReturnType<typeof generateFretboard> }): 
 }
 
 function ProgressArea(props: {
+  activeFocusSet: string;
   appState: AppState;
   currentLevelName: string;
+  guidedStringFocus: ReturnType<typeof getGuidedStringFocus>;
   nextWorkoutFocus: string;
   nextWorkoutRationale: ReturnType<typeof getNextWorkoutRationale>;
   recentAttempts: Attempt[];
@@ -1083,6 +1245,26 @@ function ProgressArea(props: {
           </p>
         </div>
       </div>
+      <section className="metric-panel">
+        <p className="eyebrow">Curriculum position</p>
+        <div className="attempt-list">
+          <div className="attempt-row trend-row">
+            <span>Level</span>
+            <span>{props.appState.currentLevel}</span>
+            <span>{props.currentLevelName}</span>
+          </div>
+          <div className="attempt-row trend-row">
+            <span>String lane</span>
+            <span>{formatStringName(props.guidedStringFocus.stringName)}</span>
+            <span>{props.guidedStringFocus.cleanPasses} / {props.guidedStringFocus.targetCleanPasses} clean</span>
+          </div>
+          <div className="attempt-row trend-row">
+            <span>Current notes</span>
+            <span>{props.activeFocusSet}</span>
+            <span>Daily Workout</span>
+          </div>
+        </div>
+      </section>
       <div className="metric-grid">
         <MetricList title="Weakest notes" items={weakest.map((entry) => `${getDisplayName(entry.pitchClass)} · ${entry.score}`)} />
         <MetricList title="Strongest notes" items={strongest.map((entry) => `${getDisplayName(entry.pitchClass)} · ${entry.score}`)} />

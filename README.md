@@ -16,6 +16,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Stable-note scoring gate to avoid counting pick attack transients as attempts
 - Conservative session-relative tuning tolerance
 - Deterministic scoring and canned coaching
+- Practice Ready screen so the timer and microphone do not start until `Start Practice`
 - Continuous microphone flow during Practice
 - Background scoring that stays out of the way during Practice
 - Compact prompt-adjacent feedback showing correct/missed/too-slow/locked results while practicing
@@ -28,6 +29,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Pause/resume so breaks do not count against response time
 - Session structures: `1 x 15`, `3 x 5`, or `5 x 3`
 - Completed session trends
+- Curriculum position in Progress: level, current string lane, current note set, and clean-pass progress
 - Local usage tracking with active, completed, and interrupted session status
 - Empty-session suppression so Progress does not get zero-attempt rows
 - Session Complete summary after ending a practice window, with explicit next choices instead of silently starting over
@@ -78,14 +80,15 @@ npm run test:e2e
 
 ## Practice Flow
 
-1. Read the prompt.
-2. Grant microphone permission if macOS asks.
-3. Play one clear guitar note into this computer's input.
-4. The app detects a stable pitch class, applies the current session's conservative tuning offset, and scores automatically.
-5. Git Neck shows the immediate result next to the prompt, advances automatically after a pass, or repeats the same prompt after a miss/slow hit.
-6. Use `Pause` when you stop for a text or interruption; quiet idle gaps over 5 seconds are also excluded from response timing.
-7. Use `Turn mic on`, `Repeat`, `Next`, or `End session` as manual overrides.
-8. Ending a session stops practice and shows a Session Complete summary. Start another session only when you explicitly choose to.
+1. Review the Practice Ready screen.
+2. Press `Start Practice` when your hands are on the guitar.
+3. Grant microphone permission if macOS asks.
+4. Read the prompt and play one clear guitar note into this computer's input.
+5. The app detects a stable pitch class, applies the current session's conservative tuning offset, and scores automatically.
+6. Git Neck shows the immediate result next to the prompt, advances automatically after a pass, or repeats the same prompt after a miss/slow hit.
+7. Use `Pause` when you stop for a text or interruption; quiet idle gaps over 5 seconds are also excluded from response timing.
+8. Use `Turn mic on`, `Repeat`, `Next`, or `End session` as manual overrides.
+9. Ending a session stops practice and shows a Session Complete summary. Start another session only when you explicitly choose to.
 
 ## Session Options
 
@@ -99,10 +102,10 @@ Paused time does not count toward the prompt response timer or active session ti
 
 ## Keyboard Shortcuts
 
-- `Space` = turn mic on/off
+- `Space` = start practice from the ready screen, then turn mic on/off during practice
 - `R` = repeat prompt
 - `F` = reveal/hide fretboard
-- `Enter` = next if feedback is showing, otherwise start listening
+- `Enter` = start practice from the ready screen; during practice, next if feedback is showing, otherwise start listening
 - In Tiger Mode, `Enter`/`Next` cannot skip a missed prompt.
 - `Esc` = pause/resume timer and stop listening
 
@@ -133,4 +136,4 @@ Paused time does not count toward the prompt response timer or active session ti
 - `npm run lint`: passed.
 - `npm run build`: passed.
 - `npm run test:e2e`: passed full Electron workflow test.
-- `npm run dev`: launched the Electron dev app on `http://localhost:5174/` because `5173` was occupied.
+- `npm run dev`: launched the Electron dev app on `http://localhost:5173/`.

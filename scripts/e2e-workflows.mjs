@@ -43,21 +43,25 @@ await check("app shell loads", async () => {
   await assertVisible("Settings / Debug");
 });
 
-await check("practice is listen-first", async () => {
-  await assertVisible(/Mic on|Mic starting|Turn mic on/);
+await check("practice waits for explicit start", async () => {
+  await assertVisible("Practice Ready");
+  await assertVisible("Today's work");
+  await assertVisible("Timer is stopped.");
+  await assertVisible("Start Practice");
   const text = await visibleText();
   assert(!text.includes("I said it out loud"));
   assert(!text.includes("Submit simulated note"));
   assert(!text.includes("Start listening"));
   assert(!text.includes("Current streak"));
   assert(!text.includes("Result\n"));
-  assert(text.includes("Scoring stays out of the way") || text.includes("Logged in the background."));
+  assert(!text.includes("Mic on"));
 });
 
 await check("practice prompt and mode controls exist", async () => {
   await assertVisible("Daily Workout");
   await assertVisible("Free Drill");
   await assertVisible("Test");
+  await page.getByRole("button", { name: "Start Practice" }).click();
   await page.locator(".prompt-lines h2").getByText(/^Play [A-G]/).waitFor({ timeout: 5000 });
   await page.locator(".prompt-lines p").getByText(/^(?!Any string$).+ string$/).waitFor({ timeout: 5000 });
   await page.getByRole("button", { name: "Free Drill" }).click();
@@ -162,11 +166,15 @@ await check("ending a session creates a trend entry", async () => {
 
   await page.getByRole("button", { name: "Practice" }).click();
   await page.getByRole("button", { name: "Start another session" }).click();
-  await page.locator(".prompt-panel h2").getByText(/Play/).waitFor({ timeout: 5000 });
+  await assertVisible("Practice Ready");
+  await assertVisible("Start Practice");
 });
 
 await check("progress shows recent attempts", async () => {
   await page.getByRole("button", { name: "Progress", exact: true }).click();
+  await assertVisible("Curriculum position");
+  await assertVisible("String lane");
+  await assertVisible("Current notes");
   await assertVisible("Recent attempts");
   await assertVisible(/pass|wrong_note|too_slow/);
 });
