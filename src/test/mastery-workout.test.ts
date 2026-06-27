@@ -5,6 +5,7 @@ import { scoreAttempt } from "../domain/scoring";
 import {
   getNextWorkoutFocus,
   getNextWorkoutRationale,
+  getDrillTypesForPrompt,
   getTrainingSelectionPlan,
   getWorkoutPlan,
   selectNextPrompt
@@ -91,6 +92,58 @@ describe("mastery and workout", () => {
     expect(plan.activePitchClasses).toEqual([9, 4]);
     expect(plan.reviewPitchClasses).toEqual([0, 7, 2]);
     expect(plan.availablePitchClasses).toEqual([0, 7, 2, 9, 4]);
+  });
+
+  it("keeps daily workout note-only before the first focus group is ready", () => {
+    const mastery = createInitialMasteryState();
+    const plan = getWorkoutPlan(mastery, 1);
+
+    expect(
+      getDrillTypesForPrompt({
+        currentLevel: 1,
+        levelDrillTypes: ["note"],
+        mode: "daily",
+        plan
+      })
+    ).toEqual(["note"]);
+  });
+
+  it("adds a light guided-string blend after the first natural focus group is ready", () => {
+    const mastery = createInitialMasteryState();
+    [0, 2, 7].forEach((pitchClass) => {
+      mastery.byPitchClass[String(pitchClass)].attempts = 1;
+      mastery.byPitchClass[String(pitchClass)].score = 60;
+    });
+    const plan = getWorkoutPlan(mastery, 1);
+
+    expect(
+      getDrillTypesForPrompt({
+        currentLevel: 1,
+        levelDrillTypes: ["note"],
+        mode: "daily",
+        plan
+      })
+    ).toEqual(["note", "note", "note", "guided_string_note"]);
+  });
+
+  it("can select guided-string prompts after the first natural focus group is ready", () => {
+    const mastery = createInitialMasteryState();
+    [0, 2, 7].forEach((pitchClass) => {
+      mastery.byPitchClass[String(pitchClass)].attempts = 1;
+      mastery.byPitchClass[String(pitchClass)].score = 60;
+    });
+
+    const prompts = Array.from({ length: 40 }, (_, index) =>
+      selectNextPrompt({
+        mastery,
+        currentLevel: 1,
+        nowMs: 4000 + index,
+        mode: "daily",
+        seed: index + 1
+      })
+    );
+
+    expect(prompts.some((prompt) => prompt.type === "guided_string_note" && prompt.targetString)).toBe(true);
   });
 
   it("next workout focus names the active set and weakest review notes", () => {

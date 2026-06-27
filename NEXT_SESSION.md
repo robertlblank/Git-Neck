@@ -53,13 +53,14 @@ What is working:
 - `CURRICULUM_RESEARCH.md` now captures the research-backed curriculum direction: deliberate practice, mastery learning, retrieval/spaced practice, interleaving, tutoring/student models, modern SRL/gamification findings, app retention risks, and guitar-specific constraints.
 - `src/domain/training.ts` now contains the first pure training diagnosis layer. It assesses pitch-class, string-pitch, and confusion-pair skills; separates weak accuracy from slow recall; detects repeated confusions and retention review; and returns active/review/contrast/expand prescriptions.
 - Daily Workout now passes attempt history into workout selection and uses training diagnosis to bias prompts toward repeated confusions, weak accuracy, slow recall, and retention review while preserving the current small focus groups.
+- Daily Workout now lightly blends guided-string prompts after the first natural focus group is ready. This remains honest: the prompt asks for a string, but the mic verifies pitch only.
 - Completed session trends are shown in Progress.
 - Sessions are persisted while active, marked completed on `End session`, and recovered as interrupted if the app stops mid-session.
 - Empty sessions are not saved, so Progress should only show sessions with attempts.
 - Ending a session now stops practice and shows a Session Complete summary with attempts, accuracy, average response, duration, misses, slow answers, next focus, and choices for `Start another session`, `Review progress`, and `Change session type`.
 - Simulated input exists only in Settings / Debug.
 - Verbal confirmation and talking to the app are no longer part of the product.
-- Tests currently pass: 63 unit tests plus the Electron E2E workflow.
+- Tests currently pass: 66 unit tests plus the Electron E2E workflow.
 - Latest verification from `/Users/robertblank/Guitar Gear Codex/git-neck` passed for `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run test:e2e`, and `npm run dev`.
 - Robert's 2026-06-14 real state showed notes were detected, Tiger Mode blocked progress on wrong notes, and right notes progressed. It also showed old timing could count long silence; that was fixed with idle-silence exclusion.
 - Robert's follow-up progress check showed the 11:37 AM session did track: 7 attempts, 5 pass, 2 wrong, 934ms average response. Empty-session clutter was found and fixed.
@@ -79,13 +80,14 @@ What not to touch:
 - Do not add backend/cloud analytics unless Robert explicitly changes the local-only decision. Usage tracking is currently local-first.
 
 Exact next task:
-Have Robert run one real mic practice session and validate the false-miss fix:
+Have Robert run one real mic practice session and validate the guided-string blend:
 1. Run `npm run dev`.
-2. Practice slowly through prompted notes and watch whether the heard note matches what was played.
+2. Practice enough Daily Workout prompts that C/G/D have real data and the next focus group unlocks.
 3. End the session.
-4. Inspect Settings / Debug audio diagnostics if Robert reports wrong scoring.
-5. If false misses persist, use the diagnostic frequency/cents/stable-time evidence before tuning thresholds again.
-6. Do not add curriculum features until detection feels trustworthy.
+4. Watch whether guided-string prompts begin appearing occasionally.
+5. Confirm the UI does not imply the mic verified the string.
+6. If guided-string prompts feel good, decide whether to expose string-specific progress next.
+7. If false misses return, inspect Settings / Debug audio diagnostics before tuning thresholds.
 
 If detection is unstable, tune src/domain/audio.ts conservatively and keep the interface simple.
 ```

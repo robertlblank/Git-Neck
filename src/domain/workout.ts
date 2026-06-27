@@ -55,7 +55,13 @@ export function selectNextPrompt(params: {
     targetPitchClass = pick(untried.length > 0 ? untried : newPitchClasses, rng);
   }
 
-  const type = pick(level.drillTypes, rng);
+  const drillTypes = getDrillTypesForPrompt({
+    currentLevel: params.currentLevel,
+    mode: params.mode,
+    plan,
+    levelDrillTypes: level.drillTypes
+  });
+  const type = pick(drillTypes, rng);
   const targetString = type === "guided_string_note" ? pick(GUIDED_STRINGS, rng) : undefined;
 
   return createDrillPrompt({
@@ -74,6 +80,23 @@ export type WorkoutPlan = {
   reviewPitchClasses: number[];
   availablePitchClasses: number[];
 };
+
+export function getDrillTypesForPrompt(params: {
+  currentLevel: number;
+  levelDrillTypes: DrillPrompt["type"][];
+  mode: "daily" | "free" | "test";
+  plan: WorkoutPlan;
+}): DrillPrompt["type"][] {
+  if (
+    params.mode === "daily" &&
+    params.currentLevel === 1 &&
+    params.plan.reviewPitchClasses.length > 0
+  ) {
+    return ["note", "note", "note", "guided_string_note"];
+  }
+
+  return params.levelDrillTypes;
+}
 
 export type TrainingSelectionPlan = {
   activePitchClasses: number[];

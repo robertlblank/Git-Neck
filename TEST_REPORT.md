@@ -480,3 +480,39 @@ Coverage added:
 Known limitation:
 
 - Existing persisted attempts before this change do not have audio diagnostics. Only new mic-scored attempts will show frequency/cents/stable-time evidence.
+
+## Latest Verification After Guided-String Blend
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 66 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was occupied. Dev processes were stopped after verification.
+
+Coverage added:
+
+- Daily Workout stays note-only before the first focus group is ready.
+- After the first natural focus group is ready, Daily Workout can include a light guided-string prompt blend.
+- Prompt selection can generate a guided-string prompt with a target string once eligible.
+
+Known limitation:
+
+- The mic still verifies pitch only. Guided-string prompts depend on Robert following the prompt honestly.

@@ -50,6 +50,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Pitch estimation now uses a more conservative YIN-style detector instead of the earlier rough autocorrelation peak picker.
 - Daily Workout uses curriculum focus groups instead of the whole level at once: natural notes start with `C, G, D`, then move to `A, E`, then `F, B`; sharps/flats are introduced in small groups.
 - Daily Workout now uses training diagnosis inside the available focus set: repeated confusions, weak accuracy, slow recall, and retention-due notes can bias the next prompt.
+- Daily Workout introduces a light guided-string prompt blend after the first natural focus group is ready; these prompts ask for a string but still verify pitch only.
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
@@ -102,8 +103,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - A complete ended 15-minute session with actual guitar has not been completed yet.
 - Whether the conservative tuning tolerance and stable-note gate need adjustment after Robert retests with guitar.
 - Whether idle-silence forgiveness feels right in Robert's room after another real pass.
-- Whether guided-string prompts feel useful without true string detection.
+- Whether the new light guided-string blend feels useful without true string detection.
 
 ## Next Recommended Action
 
-Next product step should let Robert retest a real mic practice run and inspect Settings / Debug audio diagnostics if any false misses remain.
+Next product step should let Robert test the guided-string blend after enough C/G/D practice data exists, then decide whether guided-string work should appear more often or stay light.

@@ -36,6 +36,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Curriculum research brief in `CURRICULUM_RESEARCH.md`
 - Pure training diagnosis module for skill states, repeated confusions, slow recall, retention review, and practice prescriptions
 - Daily Workout uses training diagnosis to prioritize weak accuracy, slow recall, repeated confusions, and retention review inside the current focus set
+- Daily Workout can lightly introduce guided-string prompts after the first natural-note focus group is ready
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
 - Debug-only simulated note input
@@ -110,6 +111,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - Loud rooms, chords, low input gain, attack noise, or sustained overtones may still confuse detection.
 - Normal microphone input validates pitch, not the physical fret or string.
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
+- Guided-string practice is intentionally light until it proves useful in real sessions.
 - Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
 - Practice should not require clicking before every note; the mic restarts automatically between prompts.
 - Tiger Mode is default-on; turn it off in Settings only if you intentionally want softer practice behavior.
@@ -125,7 +127,7 @@ Paused time does not count toward the prompt response timer or active session ti
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 63 tests.
+- `npm test`: passed, 66 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
