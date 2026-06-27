@@ -30,12 +30,12 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 ## What Works
 
 - Electron + React + TypeScript app scaffold.
-- Practice area with a Practice Ready state, prompt, start/stop listening, microphone status, detected note display, scoring, feedback, streak, timer, repeat, next, end session, and fretboard reveal.
+- Practice area with a Practice Ready state, string-lane prompt, start/stop listening, microphone status, detected note display, scoring, feedback, timer, repeat, next, and end session.
 - Practice does not start the timer or microphone on app open. The user must choose `Start Practice`.
 - After `Start Practice`, Practice automatically starts/restarts microphone listening between prompts; no per-note click-through is required.
 - Practice hides detailed score/result widgets while playing; scoring happens in the background.
 - Practice shows a compact prompt-adjacent result badge: `Correct`, `Missed`, `Too slow`, or `Locked until clean`, including the heard note when available.
-- Practice prompt text uses explicit labels: `Note` for the target note and `String` for the string instruction.
+- Practice prompt uses six stable string lanes: the target string is highlighted and the target note sits on that lane without fret numbers, fret markers, or answer-location reveal.
 - Practice shows the active curriculum focus set in the session strip.
 - Progress and Session Complete show why Git Neck is choosing the next focus, such as contrast work, accuracy work, speed work, or retention review.
 - Auto-advance moves to the next prompt after correct answers and repeats after wrong/slow answers.
@@ -56,7 +56,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Daily Workout uses a single-string recall lane: stay on one focus string until 3 clean guided passes, then move to the next string.
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with curriculum position, current level, current string lane, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
-- Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
+- Settings / Debug area with workout length, fret range, session structure, Tiger Mode, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
 - Settings / Debug includes microphone audio diagnostics for recent scored mic attempts: target, heard note, frequency, cents, stable time, and result.
 - Pure domain modules for notes, fretboard, audio helpers, sessions, drills, scoring, coaching, mastery, curriculum, workout, and training diagnosis.
 - Training diagnosis can assess pitch-class, string-pitch, and repeated-confusion skills as `unseen`, `introduced`, `weak_accuracy`, `slow_recall`, `repeated_confusion`, `retention_failed`, `accurate`, or `automatic`, then prescribe active/review/contrast/expand practice.
@@ -65,6 +65,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Project folder is `/Users/robertblank/Guitar Gear Codex/git-neck`.
 - Stop Listening blank-screen bug is fixed and covered by E2E regression.
 - Practice no longer shows the score/result panel while playing; covered by E2E regression.
+- Practice no longer shows a fretboard answer map or reveal control during the active drill.
 - Continuous microphone flow is covered by E2E regression.
 - Old v1 persisted state migrates Tiger Mode to on, so prior local defaults do not silently keep skip-friendly behavior.
 
@@ -94,7 +95,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Speed and retention are currently represented as diagnosis states over pitch/string skills, not as separate standalone skill IDs.
 - Single-string recall lane is intentionally simple: it starts with the B string and counts clean pitch passes for prompted string work. The mic still does not verify the physical string.
 - Free Drill/Test may still use note-only prompts. Daily Workout is the structured curriculum path and is string-specific.
-- Fretboard visual is useful but intentionally plain.
+- Fretboard answer-location reveal is removed from active Practice because it distracts from recall. The app may still use fretboard concepts internally and in future non-active reference views.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
 ## What Is Broken
@@ -109,8 +110,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Whether the conservative tuning tolerance and stable-note gate need adjustment after Robert retests with guitar.
 - Whether idle-silence forgiveness feels right in Robert's room after another real pass.
 - Whether the Practice Ready screen reduces timer anxiety in real use.
-- Whether the always-string-specific Daily Workout feels structured enough in Robert's real practice.
+- Whether the string-lane prompt is visually easier to parse than prior text-only prompt layouts in Robert's real practice.
 
 ## Next Recommended Action
 
-Next product step should let Robert test starting from Practice Ready, then run a real Daily Workout where every prompt has a target string and confirm the curriculum position panel feels useful.
+Next product step should let Robert test starting from Practice Ready, then run a real Daily Workout where the prompt uses string lanes without fretboard answer locations and confirm whether that visual is easier to parse while playing.

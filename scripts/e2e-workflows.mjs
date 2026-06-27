@@ -62,9 +62,9 @@ await check("practice prompt and mode controls exist", async () => {
   await assertVisible("Free Drill");
   await assertVisible("Test");
   await page.getByRole("button", { name: "Start Practice" }).click();
-  await page.locator(".prompt-lines").getByText("Note").waitFor({ timeout: 5000 });
-  await page.locator(".prompt-lines h2").getByText(/^[A-G]/).waitFor({ timeout: 5000 });
-  await page.locator(".prompt-lines p").getByText(/String(?!Any string$).+ string$/).waitFor({ timeout: 5000 });
+  await page.locator(".lane-instruction").getByText("Target string").waitFor({ timeout: 5000 });
+  await page.locator(".string-lane-row.active .string-lane-label").waitFor({ timeout: 5000 });
+  await page.locator(".target-note-badge").getByText(/^[A-G]/).waitFor({ timeout: 5000 });
   await page.getByRole("button", { name: "Free Drill" }).click();
   await page.getByRole("button", { name: "Test" }).click();
   await page.getByRole("button", { name: "Daily Workout" }).click();
@@ -82,16 +82,7 @@ await check("session controls and pause work", async () => {
   await assertVisible("Microphone idle.");
 });
 
-await check("fretboard reveal toggle works", async () => {
-  await page.getByRole("button", { name: "Reveal fretboard" }).click();
-  await assertVisible("lowE");
-  await page.getByRole("button", { name: "Hide fretboard" }).click();
-  await page.getByRole("button", { name: "Reveal fretboard" }).waitFor();
-});
-
-await check("keyboard shortcuts for reveal and repeat work", async () => {
-  await page.keyboard.press("F");
-  await assertVisible("lowE");
+await check("keyboard shortcut for repeat works", async () => {
   await page.keyboard.press("R");
   await assertVisible("Same prompt.");
 });
@@ -111,9 +102,8 @@ await check("microphone stays available without per-note click", async () => {
 
 await check("settings and debug simulated scoring work", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
-  const promptText = await page.locator(".prompt-lines").innerText();
-  const targetNote = getTargetNoteForPrompt(promptText);
-  const wrongNote = getWrongNoteForPrompt(promptText);
+  const targetNote = await getCurrentTargetNote();
+  const wrongNote = getWrongNoteForTarget(targetNote);
 
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await assertVisible("Debug simulated input");
@@ -141,8 +131,7 @@ await check("settings and debug simulated scoring work", async () => {
 await check("ending a session creates a trend entry", async () => {
   await page.getByRole("button", { name: "Practice" }).click();
   await page.getByRole("button", { name: "Repeat" }).click();
-  const promptText = await page.locator(".prompt-lines").innerText();
-  const targetNote = getTargetNoteForPrompt(promptText);
+  const targetNote = await getCurrentTargetNote();
   await page.getByRole("button", { name: "Settings / Debug" }).click();
   await scoreDebugNoteAndWaitForActiveSessionAttempt(targetNote);
   await page.getByRole("button", { name: "Practice" }).click();
@@ -300,16 +289,13 @@ async function getPersistedState() {
   }
 }
 
-function getWrongNoteForPrompt(promptText) {
+function getWrongNoteForTarget(targetNote) {
   const noteNames = ["C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"];
-  const targetNote = getTargetNoteForPrompt(promptText);
   return noteNames.find((noteName) => noteName !== targetNote) ?? "C";
 }
 
-function getTargetNoteForPrompt(promptText) {
-  const match = promptText.match(/note\s+([A-G](?:#\/[A-G]b)?)/i);
-  assert(match, `Could not parse prompt note from: ${promptText}`);
-  return match[1];
+async function getCurrentTargetNote() {
+  return page.locator(".target-note-badge").innerText();
 }
 
 async function launchApp(options) {

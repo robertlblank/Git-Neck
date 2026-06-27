@@ -20,6 +20,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Continuous microphone flow during Practice
 - Background scoring that stays out of the way during Practice
 - Compact prompt-adjacent feedback showing correct/missed/too-slow/locked results while practicing
+- String-lane prompt display: six stable string lanes, highlighted target string, and a large target-note badge without fret locations
 - Curriculum focus sets in Daily Workout, visible in Practice
 - Training-rationale explanations in Progress and Session Complete, kept out of active playing
 - Auto-advance after a scored note
@@ -36,12 +37,14 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Basic mastery tracking and diagnosis-aware workout prompt weighting
 - Small focus-group progression for note mastery: naturals begin with `C, G, D`, then `A, E`, then `F, B`; sharps/flats enter in small groups
 - Curriculum research brief in `CURRICULUM_RESEARCH.md`
+- Trey Anastasio vocabulary research and six-week curriculum in `TREY_ANASTASIO_CURRICULUM.md`
 - Pure training diagnosis module for skill states, repeated confusions, slow recall, retention review, and practice prescriptions
 - Daily Workout uses training diagnosis to prioritize weak accuracy, slow recall, repeated confusions, and retention review inside the current focus set
 - Daily Workout is always string-specific, so curriculum practice does not mix target strings with `Any string`
 - Guided-string Daily Workout prompts use a single-string recall lane: one focus string until 3 clean guided passes, then the next string
 - Local JSON persistence through Electron IPC
-- Practice, Progress, and Settings / Debug areas
+- Practice, Progress, Trey Lab, and Settings / Debug areas
+- Trey Lab with sourced Anastasio-style vocabulary cards, original motif studies, root transposition, listening assignments, and tone notes
 - Debug-only simulated note input
 - Settings-only microphone diagnostics for validating target/heard/frequency/cents/stable-time evidence
 - Unit and Electron UI workflow tests
@@ -52,6 +55,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Calibration wizard and input-device selection
 - Automatic physical string/fret detection
 - Intervals, chord tones, scales, songs, backing tracks, ear training
+- Full integration between Trey Lab motifs and microphone-scored note prompts
 - LLM coaching or spoken coach
 - Advanced analytics and heatmaps
 - Packaging, signing, notarization, accounts, backend, cloud, mobile, web deployment
@@ -90,6 +94,12 @@ npm run test:e2e
 8. Use `Turn mic on`, `Repeat`, `Next`, or `End session` as manual overrides.
 9. Ending a session stops practice and shows a Session Complete summary. Start another session only when you explicitly choose to.
 
+## Trey Lab
+
+Use `Trey Lab` for Trey Anastasio-style vocabulary practice. It contains sourced, original studies for groups of four, thirds, chromatic cells, diminished tension, arpeggio spines, modal pivots, Stash-style tension/release, Divided Sky sustain, and Reba-style peak building.
+
+The note sequences are generated from interval patterns and can be transposed by root. They are teaching studies, not copied solo transcriptions.
+
 ## Session Options
 
 Use Settings / Debug to choose:
@@ -104,7 +114,6 @@ Paused time does not count toward the prompt response timer or active session ti
 
 - `Space` = start practice from the ready screen, then turn mic on/off during practice
 - `R` = repeat prompt
-- `F` = reveal/hide fretboard
 - `Enter` = start practice from the ready screen; during practice, next if feedback is showing, otherwise start listening
 - In Tiger Mode, `Enter`/`Next` cannot skip a missed prompt.
 - `Esc` = pause/resume timer and stop listening
@@ -116,6 +125,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - Normal microphone input validates pitch, not the physical fret or string.
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
 - Daily Workout guided-string practice is intentionally string-lane based so curriculum sessions stay structured.
+- Active Practice does not show fretboard answer locations; the lane is a prompt cue, not a fret map.
 - Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
 - Practice should not require clicking before every note; the mic restarts automatically between prompts.
 - Tiger Mode is default-on; turn it off in Settings only if you intentionally want softer practice behavior.
@@ -131,9 +141,9 @@ Paused time does not count toward the prompt response timer or active session ti
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 70 tests.
+- `npm test`: passed, 75 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
-- `npm run test:e2e`: passed full Electron workflow test.
-- `npm run dev`: launched the Electron dev app on `http://localhost:5173/`.
+- `npm run test:e2e`: not completed in this sandbox run; Electron launched but stalled before the first workflow assertion.
+- `npm run dev`: launched with approved localhost permissions and returned `HTTP 200` on `http://localhost:5173/` during verification, then was stopped.

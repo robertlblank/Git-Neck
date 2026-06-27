@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import {
   classifyFrequencyForTarget,
@@ -11,7 +11,6 @@ import {
 } from "../domain/audio";
 import { FORCE_UNLOCK_WARNING, getCurrentLevel } from "../domain/curriculum";
 import { formatStringName } from "../domain/drills";
-import { generateFretboard } from "../domain/fretboard";
 import {
   averageResponseMs,
   getSlowestPitchClasses,
@@ -34,7 +33,16 @@ import {
   recoverInterruptedSessions,
   SESSION_STRUCTURES
 } from "../domain/sessions";
-import type { AppState, Attempt, AttemptAudioDiagnostic, AttemptSource, DrillMode, DrillPrompt, Settings } from "../domain/types";
+import type {
+  AppState,
+  Attempt,
+  AttemptAudioDiagnostic,
+  AttemptSource,
+  DrillMode,
+  DrillPrompt,
+  GuitarString,
+  Settings
+} from "../domain/types";
 import {
   getGuidedStringFocus,
   getNextWorkoutFocus,
@@ -43,8 +51,9 @@ import {
   selectNextPrompt
 } from "../domain/workout";
 import { createDefaultAppState, normalizeAppState } from "../persistence/schema";
+import { TreyLab } from "./TreyLab";
 
-type Area = "practice" | "progress" | "settings";
+type Area = "practice" | "progress" | "trey" | "settings";
 
 const STORAGE_KEY = "git-neck-state";
 
@@ -68,6 +77,8 @@ type PromptResult = {
   detail: string;
 };
 
+const LANE_STRINGS: GuitarString[] = ["highE", "B", "G", "D", "A", "lowE"];
+
 export function App(): ReactElement {
   const [area, setArea] = useState<Area>("practice");
   const [appState, setAppState] = useState<AppState>(() => createDefaultAppState());
@@ -83,7 +94,6 @@ export function App(): ReactElement {
   );
   const [debugPitchClass, setDebugPitchClass] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("Press Start Practice when you are ready.");
-  const [showFretboard, setShowFretboard] = useState(false);
   const [lastAttempt, setLastAttempt] = useState<Attempt | null>(null);
   const [missLockedPrompt, setMissLockedPrompt] = useState<DrillPrompt | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -141,7 +151,6 @@ export function App(): ReactElement {
 
       appStateRef.current = recoveredState;
       setAppState(recoveredState);
-      setShowFretboard(state.settings.revealFretboardDefault);
       setPrompt(
         selectNextPrompt({
           mastery: recoveredState.mastery,
@@ -296,7 +305,6 @@ export function App(): ReactElement {
       setLastAttempt(null);
       setElapsedMs(0);
       setFeedback("Tiger Mode: same note until you hit it.");
-      setShowFretboard(appState.settings.revealFretboardDefault);
       setPaused(false);
       return;
     }
@@ -315,14 +323,12 @@ export function App(): ReactElement {
     setLastAttempt(null);
     setElapsedMs(0);
     setFeedback("Mic starts automatically. Play the note.");
-    setShowFretboard(appState.settings.revealFretboardDefault);
     setPaused(false);
     setPostSessionSummary(null);
   }, [
     appState.currentLevel,
     appState.attempts,
     appState.mastery,
-    appState.settings.revealFretboardDefault,
     appState.settings.tigerMode,
     missLockedPrompt,
     mode,
@@ -348,16 +354,8 @@ export function App(): ReactElement {
     setLastAttempt(null);
     setElapsedMs(0);
     setFeedback("Same prompt.");
-    setShowFretboard(appState.settings.revealFretboardDefault);
     setPaused(false);
-  }, [
-    appState.settings.revealFretboardDefault,
-    postSessionSummary,
-    practiceStarted,
-    prompt,
-    sessionPauseStartedAtMs,
-    stopListening
-  ]);
+  }, [postSessionSummary, practiceStarted, prompt, sessionPauseStartedAtMs, stopListening]);
 
   const scoreDetectedPitch = useCallback((pitchClass: number, source: AttemptSource, audioDiagnostic?: AttemptAudioDiagnostic) => {
     if (postSessionSummary || !practiceStarted) {
@@ -412,7 +410,6 @@ export function App(): ReactElement {
     setMissLockedPrompt(outcome.attempt.result === "pass" ? null : prompt);
     setElapsedMs(outcome.attempt.responseMs);
     setFeedback(getCoachingFeedback(outcome.attempt, prompt));
-    setShowFretboard(true);
   }, [
     mode,
     prompt,
@@ -743,8 +740,6 @@ export function App(): ReactElement {
         }
       } else if (event.key.toLowerCase() === "r") {
         repeatPrompt();
-      } else if (event.key.toLowerCase() === "f") {
-        setShowFretboard((value) => !value);
       } else if (event.key === "Enter") {
         if (!practiceStarted) {
           beginPractice();
@@ -817,6 +812,9 @@ export function App(): ReactElement {
           <button className={area === "progress" ? "active" : ""} onClick={() => setArea("progress")}>
             Progress
           </button>
+          <button className={area === "trey" ? "active" : ""} onClick={() => setArea("trey")}>
+            Trey Lab
+          </button>
           <button className={area === "settings" ? "active" : ""} onClick={() => setArea("settings")}>
             Settings / Debug
           </button>
@@ -847,7 +845,6 @@ export function App(): ReactElement {
             setMicEnabled(false);
             stopListening();
           }}
-          onToggleFretboard={() => setShowFretboard((value) => !value)}
           audioStatus={audioStatus}
           detectedPitch={detectedPitch}
           listening={listening}
@@ -861,7 +858,6 @@ export function App(): ReactElement {
           sessionTuningOffsetCents={sessionTuningOffsetCents}
           sessionTuningSamples={sessionTuningSamples}
           tigerLocked={appState.settings.tigerMode && missLockedPrompt !== null}
-          showFretboard={showFretboard}
         />
       )}
 
@@ -877,6 +873,8 @@ export function App(): ReactElement {
           sessionTrends={getSessionTrends(appState)}
         />
       )}
+
+      {area === "trey" && <TreyLab />}
 
       {area === "settings" && (
         <SettingsArea
@@ -923,7 +921,6 @@ function PracticeArea(props: {
   onStartNewSession: () => void;
   onStartListening: () => void;
   onStopListening: () => void;
-  onToggleFretboard: () => void;
   paused: boolean;
   postSessionSummary: PostSessionSummary | null;
   practiceStarted: boolean;
@@ -932,24 +929,14 @@ function PracticeArea(props: {
   sessionAttemptCount: number;
   sessionTuningOffsetCents: number;
   sessionTuningSamples: number;
-  showFretboard: boolean;
   tigerLocked: boolean;
 }): ReactElement {
-  const positions = useMemo(
-    () => generateFretboard(props.appState.settings.minFret, props.appState.settings.maxFret),
-    [props.appState.settings.maxFret, props.appState.settings.minFret]
-  );
   const sessionConfig = getSessionStructureConfig(props.appState.settings.sessionStructure);
   const sessionTargetMs = getSessionTargetMs(props.appState.settings.sessionStructure);
   const currentSegment = getCurrentSegment(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const segmentRemainingMs = getSessionSegmentRemainingMs(props.sessionActiveMs, props.appState.settings.sessionStructure);
   const promptResult = getPromptResult(props.lastAttempt, props.tigerLocked);
   const level = getCurrentLevel(props.appState.currentLevel);
-  const promptStringInstruction =
-    props.prompt.type === "guided_string_note" && props.prompt.targetString
-      ? `${formatStringName(props.prompt.targetString)} string`
-      : "Any string";
-
   if (props.postSessionSummary) {
     return (
       <section className="practice-grid">
@@ -1080,13 +1067,7 @@ function PracticeArea(props: {
         </div>
         <p className="timer">{props.paused ? "Paused" : `${Math.round(props.elapsedMs / 100) / 10}s`}</p>
         <div className="prompt-target">
-          <div className="prompt-lines" aria-label={`Note ${props.prompt.targetDisplayName}. String ${promptStringInstruction}.`}>
-            <div>
-              <span>Note</span>
-              <h2>{props.prompt.targetDisplayName}</h2>
-            </div>
-            <p><span>String</span>{promptStringInstruction}</p>
-          </div>
+          <StringLanePrompt prompt={props.prompt} />
           {promptResult && (
             <div className={`prompt-result ${promptResult.tone}`} aria-live="polite">
               <strong>{promptResult.label}</strong>
@@ -1101,7 +1082,6 @@ function PracticeArea(props: {
           >
             {props.listening ? "Mic on" : props.micEnabled ? "Mic starting" : "Turn mic on"}
           </button>
-          <button onClick={props.onToggleFretboard}>{props.showFretboard ? "Hide fretboard" : "Reveal fretboard"}</button>
           <button onClick={props.onPauseToggle}>{props.paused ? "Resume" : "Pause"}</button>
         </div>
         <div className="listener-panel">
@@ -1128,9 +1108,37 @@ function PracticeArea(props: {
               ? "Logged in the background."
               : "Mic stays on between prompts. Scoring stays out of the way."}
         </p>
-        {props.showFretboard && <Fretboard positions={positions} />}
       </aside>
     </section>
+  );
+}
+
+function StringLanePrompt(props: { prompt: DrillPrompt }): ReactElement {
+  const targetString = props.prompt.targetString;
+  const stringInstruction = targetString ? `${formatStringName(targetString)} string` : "Any string";
+
+  return (
+    <div className="prompt-lines string-lane-prompt" aria-label={`${stringInstruction}. Play ${props.prompt.targetDisplayName}.`}>
+      <p className="lane-instruction">
+        <span>Target string</span>
+        <strong>{stringInstruction}</strong>
+      </p>
+      <div className="string-lanes" aria-label="String lanes">
+        {LANE_STRINGS.map((stringName) => {
+          const isTarget = stringName === targetString;
+
+          return (
+            <div className={isTarget ? "string-lane-row active" : "string-lane-row"} key={stringName}>
+              <span className="string-lane-label">{formatStringName(stringName)}</span>
+              <div className="string-lane-line">
+                {isTarget && <span className="target-note-badge">{props.prompt.targetDisplayName}</span>}
+              </div>
+            </div>
+          );
+        })}
+        {!targetString && <span className="target-note-badge any-string">{props.prompt.targetDisplayName}</span>}
+      </div>
+    </div>
   );
 }
 
@@ -1189,31 +1197,6 @@ function PostSessionPanel(props: {
         <button onClick={props.onChangeSessionType}>Change session type</button>
       </div>
     </section>
-  );
-}
-
-function Fretboard(props: { positions: ReturnType<typeof generateFretboard> }): ReactElement {
-  const frets = Array.from(new Set(props.positions.map((position) => position.fret)));
-  const strings = ["lowE", "A", "D", "G", "B", "highE"];
-
-  return (
-    <div className="fretboard">
-      <div className="fret-row header-row">
-        <span />
-        {frets.map((fret) => (
-          <span key={fret}>{fret}</span>
-        ))}
-      </div>
-      {strings.map((stringName) => (
-        <div className="fret-row" key={stringName}>
-          <strong>{stringName}</strong>
-          {frets.map((fret) => {
-            const position = props.positions.find((item) => item.string === stringName && item.fret === fret);
-            return <span key={`${stringName}-${fret}`}>{position?.displayName}</span>;
-          })}
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -1381,16 +1364,6 @@ function SettingsArea(props: {
             onChange={(event) => props.onSettingsChange({ ...settings, tigerMode: event.currentTarget.checked })}
           />
           Tiger Mode
-        </label>
-        <label className="toggle">
-          <input
-            checked={settings.revealFretboardDefault}
-            type="checkbox"
-            onChange={(event) =>
-              props.onSettingsChange({ ...settings, revealFretboardDefault: event.currentTarget.checked })
-            }
-          />
-          Reveal fretboard by default
         </label>
         <label>
           Session structure

@@ -131,36 +131,93 @@ button.small {
 
 .prompt-lines {
   display: grid;
-  gap: 12px;
-}
-
-.prompt-lines h2 {
-  white-space: nowrap;
-}
-
-.prompt-lines p {
-  align-items: baseline;
-  color: #6e3d2a;
-  display: flex;
-  font-size: clamp(1.8rem, 4vw, 3.2rem);
   gap: 14px;
-  font-weight: 800;
-  line-height: 1.05;
+}
+
+.lane-instruction {
+  align-items: baseline;
+  color: #173f35;
+  display: flex;
+  gap: 14px;
   margin: 0;
 }
 
-.prompt-lines span {
+.lane-instruction span {
   color: #6e3d2a;
-  display: block;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  margin-bottom: 6px;
   text-transform: uppercase;
 }
 
-.prompt-lines p span {
-  margin-bottom: 0;
+.lane-instruction strong {
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+}
+
+.string-lanes {
+  display: grid;
+  gap: 13px;
+  max-width: 980px;
+  padding: 18px 0 10px;
+  position: relative;
+}
+
+.string-lane-row {
+  align-items: center;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 80px minmax(0, 1fr);
+  min-height: 42px;
+}
+
+.string-lane-label {
+  color: #716a5c;
+  font-size: 0.98rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.string-lane-line {
+  background: #d8d1c2;
+  border-radius: 999px;
+  height: 5px;
+  position: relative;
+}
+
+.string-lane-row.active .string-lane-label {
+  color: #173f35;
+  font-size: 1.2rem;
+}
+
+.string-lane-row.active .string-lane-line {
+  background: #173f35;
+  height: 12px;
+}
+
+.target-note-badge {
+  align-items: center;
+  background: #173f35;
+  border: 4px solid #fffefa;
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(23, 32, 27, 0.16);
+  color: #fffefa;
+  display: inline-flex;
+  font-size: clamp(3.4rem, 8vw, 7rem);
+  font-weight: 900;
+  height: clamp(86px, 11vw, 132px);
+  justify-content: center;
+  left: 50%;
+  line-height: 1;
+  min-width: clamp(110px, 14vw, 166px);
+  padding: 0 26px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.target-note-badge.any-string {
+  left: calc(80px + 50%);
+  top: 50%;
 }
 
 .prompt-result {
@@ -397,6 +454,226 @@ button.small {
   margin: 10px 0 0;
 }
 
+.trey-lab h2,
+.trey-lab h3,
+.trey-lab p {
+  margin-top: 0;
+}
+
+.trey-lab ul {
+  line-height: 1.55;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.trey-hero {
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+}
+
+.trey-hero-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trey-hero-stats div {
+  background: rgba(255, 254, 250, 0.1);
+  border: 1px solid rgba(255, 254, 250, 0.18);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  min-height: 86px;
+  padding: 14px;
+}
+
+.trey-hero-stats strong {
+  color: #f0c879;
+  font-size: 2rem;
+}
+
+.trey-hero-stats span {
+  color: #e7ded0;
+  font-size: 0.86rem;
+}
+
+.trey-trainer-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(260px, 0.34fr) minmax(0, 0.66fr);
+}
+
+.trey-card-list {
+  align-content: start;
+  display: grid;
+  gap: 8px;
+}
+
+.trey-card-button {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  min-height: 48px;
+  text-align: left;
+  width: 100%;
+}
+
+.trey-card-button span {
+  font-weight: 800;
+}
+
+.trey-card-button small {
+  color: #716a5c;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.trey-card-button.active small {
+  color: #f4e8cf;
+}
+
+.trey-motif-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.trey-motif-header {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 132px;
+}
+
+.trey-motif-header h2 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.trey-motif-header p,
+.trey-detail-grid p,
+.trey-week p,
+.trey-listening-card p,
+.trey-tone-card p {
+  color: #514b41;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.trey-sequence {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(8, minmax(56px, 1fr));
+}
+
+.trey-note-cell {
+  background: #173f35;
+  border-radius: 8px;
+  color: #fffefa;
+  display: grid;
+  gap: 6px;
+  min-height: 72px;
+  padding: 10px;
+}
+
+.trey-note-cell strong {
+  font-size: 1.1rem;
+}
+
+.trey-note-cell span {
+  color: #f0c879;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.trey-detail-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trey-detail-grid + .trey-detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.trey-source-row {
+  border-top: 1px solid #eee7dc;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.trey-source-row a,
+.trey-source-grid a {
+  border: 1px solid #ddd7ca;
+  border-radius: 8px;
+  color: #173f35;
+  text-decoration: none;
+}
+
+.trey-source-row a {
+  padding: 8px 10px;
+}
+
+.trey-wide-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr) minmax(280px, 0.8fr);
+}
+
+.trey-week-list,
+.trey-listening-list,
+.trey-tone-list {
+  display: grid;
+  gap: 14px;
+}
+
+.trey-week,
+.trey-listening-card,
+.trey-tone-card {
+  border-bottom: 1px solid #eee7dc;
+  display: grid;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.trey-week:last-child,
+.trey-listening-card:last-child,
+.trey-tone-card:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.trey-pill {
+  background: #f0c879;
+  border-radius: 999px;
+  color: #173f35;
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  text-transform: uppercase;
+}
+
+.trey-source-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.trey-source-grid a {
+  display: grid;
+  gap: 6px;
+  min-height: 88px;
+  padding: 12px;
+}
+
+.trey-source-grid span {
+  color: #716a5c;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
 .settings-grid .metric-panel {
   display: grid;
   gap: 14px;
@@ -432,6 +709,12 @@ select {
   .topbar,
   .practice-grid,
   .summary-band,
+  .trey-hero,
+  .trey-trainer-grid,
+  .trey-motif-header,
+  .trey-detail-grid,
+  .trey-detail-grid + .trey-detail-grid,
+  .trey-source-grid,
   .metric-grid,
   .settings-grid {
     grid-template-columns: 1fr;
@@ -448,5 +731,10 @@ select {
 
   .session-strip {
     grid-template-columns: 1fr;
+  }
+
+  .trey-hero-stats,
+  .trey-sequence {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

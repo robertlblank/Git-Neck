@@ -41,8 +41,8 @@ Covered:
 - listen-first Practice UX
 - mode controls
 - pause/resume session control
-- fretboard reveal/hide
-- keyboard shortcuts
+- string-lane prompt display with no active fretboard answer reveal
+- keyboard shortcuts that remain in the active product
 - microphone start invocation with fake media
 - Settings / Debug simulated scoring fallback
 - Tiger Mode lock/unlock regression: intentional debug miss returns to Practice as `Locked`; correct retry clears back to `Next`
@@ -698,3 +698,41 @@ Coverage added:
 Known limitation:
 
 - This is a display presentation change only; no scoring behavior changed.
+
+## Latest Verification After String-Lane Prompt And No Fretboard Reveal
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 9 files / 75 tests.
+- `npm run build`: passed.
+- First sandboxed `npm run test:e2e` launch hung without workflow output; it was stopped with `pkill -f scripts/e2e-workflows.mjs`.
+- Elevated `npm run test:e2e`: passed full Electron workflow test, including Practice Ready, string-lane prompt, pause/resume, debug scoring, Tiger Mode lock, session completion, progress, and settings persistence.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was occupied. Dev process was stopped after verification with `pkill -f electron-vite`.
+
+Coverage added:
+
+- Practice prompt now uses six stable string lanes with the target string highlighted and the note badge on the active lane.
+- Active Practice no longer exposes a fretboard reveal button or automatic answer-location reveal after scoring.
+- Settings no longer exposes `Reveal fretboard by default`.
+- E2E now asserts the lane prompt and no longer relies on the removed fretboard reveal shortcut.
+
+Known limitation:
+
+- This verification checks the DOM workflow and app launch. It does not include a pixel comparison of the lane prompt, and the mic still validates pitch only, not the physical string.

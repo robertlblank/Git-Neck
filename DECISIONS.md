@@ -8,8 +8,8 @@
 - Right-handed fretboard only.
 - Default fret range: open-12.
 - Enharmonic equivalents count as the same pitch class.
-- Fretboard visual is toggleable.
-- Default behavior hides fretboard during the attempt and reveals after an answer.
+- Active Practice must not show fretboard answer locations, fret numbers, or note-position maps while drilling.
+- String-specific prompts should use a stable visual cue, such as string lanes, rather than a fretboard answer reveal.
 - Coaching is deterministic canned text only.
 - No LLM in v0.1.
 - Tone is concise sports-coach feedback, not abusive.
