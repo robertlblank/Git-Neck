@@ -51,6 +51,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Daily Workout uses curriculum focus groups instead of the whole level at once: natural notes start with `C, G, D`, then move to `A, E`, then `F, B`; sharps/flats are introduced in small groups.
 - Daily Workout now uses training diagnosis inside the available focus set: repeated confusions, weak accuracy, slow recall, and retention-due notes can bias the next prompt.
 - Daily Workout introduces a light guided-string prompt blend after the first natural focus group is ready; these prompts ask for a string but still verify pitch only.
+- Daily Workout guided-string prompts now use a single-string recall lane: stay on one focus string until 3 clean guided passes, then move to the next string.
 - `CURRICULUM_RESEARCH.md` defines the current research-backed direction for training methodology, including modern app retention risks and learning-science principles.
 - Progress area with current level, weakest notes, strongest notes, slowest notes, recent attempts, session trends, and next workout focus.
 - Settings / Debug area with workout length, fret range, session structure, Tiger Mode, reveal default, active input mode, force unlock, state file path, recent attempts, and debug-only simulated note input.
@@ -89,6 +90,7 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - Focus-group advancement is deliberately simple: a group advances when every note in it has at least one attempt and a score of 55+.
 - Training methodology is researched and the first pure `training` domain module now feeds Daily Workout selection.
 - Speed and retention are currently represented as diagnosis states over pitch/string skills, not as separate standalone skill IDs.
+- Single-string recall lane is intentionally simple: it starts with the B string and counts clean pitch passes for prompted string work. The mic still does not verify the physical string.
 - Fretboard visual is useful but intentionally plain.
 - Backend/cloud product analytics are deferred. Current usage analytics are local-only session records; adding a tracker backend would require an explicit locked-decision change.
 
@@ -103,8 +105,8 @@ Do not rely on chat memory when the files disagree with memory. The files are th
 - A complete ended 15-minute session with actual guitar has not been completed yet.
 - Whether the conservative tuning tolerance and stable-note gate need adjustment after Robert retests with guitar.
 - Whether idle-silence forgiveness feels right in Robert's room after another real pass.
-- Whether the new light guided-string blend feels useful without true string detection.
+- Whether the new single-string recall lane feels useful without true string detection.
 
 ## Next Recommended Action
 
-Next product step should let Robert test the guided-string blend after enough C/G/D practice data exists, then decide whether guided-string work should appear more often or stay light.
+Next product step should let Robert test the single-string recall lane after enough C/G/D practice data exists, then decide whether string-specific progress should be exposed in Progress.

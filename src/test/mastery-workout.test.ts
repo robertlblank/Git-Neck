@@ -3,6 +3,7 @@ import { createDrillPrompt } from "../domain/drills";
 import { createInitialMasteryState, updateMastery } from "../domain/mastery";
 import { scoreAttempt } from "../domain/scoring";
 import {
+  getGuidedStringFocus,
   getNextWorkoutFocus,
   getNextWorkoutRationale,
   getDrillTypesForPrompt,
@@ -28,6 +29,33 @@ function attemptFor(targetPitchClass: number, submittedPitchClass: number, respo
     responseMs,
     previousAttempts: [],
     nowMs: 2000
+  }).attempt;
+}
+
+function guidedAttemptFor(
+  targetPitchClass: number,
+  targetString: "lowE" | "A" | "D" | "G" | "B" | "highE",
+  submittedPitchClass: number,
+  responseMs = 900,
+  nowMs = 2000
+) {
+  const prompt = createDrillPrompt({
+    id: `prompt-${targetString}-${targetPitchClass}-${nowMs}`,
+    type: "guided_string_note",
+    targetPitchClass,
+    targetString,
+    nowMs: 1000
+  });
+
+  return scoreAttempt({
+    prompt,
+    mode: "daily",
+    submittedPitchClass,
+    submittedDisplayName: null,
+    source: "microphone",
+    responseMs,
+    previousAttempts: [],
+    nowMs
   }).attempt;
 }
 
@@ -144,6 +172,79 @@ describe("mastery and workout", () => {
     );
 
     expect(prompts.some((prompt) => prompt.type === "guided_string_note" && prompt.targetString)).toBe(true);
+  });
+
+  it("keeps daily guided-string prompts on one focus string until clean passes are logged", () => {
+    const mastery = createInitialMasteryState();
+    [0, 2, 7].forEach((pitchClass) => {
+      mastery.byPitchClass[String(pitchClass)].attempts = 1;
+      mastery.byPitchClass[String(pitchClass)].score = 60;
+    });
+
+    const prompts = Array.from({ length: 40 }, (_, index) =>
+      selectNextPrompt({
+        mastery,
+        currentLevel: 1,
+        nowMs: 4000 + index,
+        mode: "daily",
+        seed: index + 1
+      })
+    ).filter((prompt) => prompt.type === "guided_string_note");
+
+    expect(prompts.length).toBeGreaterThan(0);
+    expect(new Set(prompts.map((prompt) => prompt.targetString))).toEqual(new Set(["B"]));
+  });
+
+  it("moves the guided-string focus after enough clean passes on the current string", () => {
+    const attempts = [
+      guidedAttemptFor(0, "B", 0, 900, 2000),
+      guidedAttemptFor(7, "B", 7, 900, 3000)
+    ];
+
+    expect(getGuidedStringFocus({ attempts, availablePitchClasses: [0, 2, 7, 9, 4] })).toMatchObject({
+      stringName: "B",
+      cleanPasses: 2,
+      targetCleanPasses: 3
+    });
+
+    attempts.push(guidedAttemptFor(2, "B", 2, 900, 4000));
+
+    expect(getGuidedStringFocus({ attempts, availablePitchClasses: [0, 2, 7, 9, 4] })).toMatchObject({
+      stringName: "G",
+      cleanPasses: 0,
+      targetCleanPasses: 3
+    });
+  });
+
+  it("does not count wrong or slow guided-string attempts as clean focus passes", () => {
+    const attempts = [
+      guidedAttemptFor(0, "B", 5, 900, 2000),
+      guidedAttemptFor(7, "B", 7, 3400, 3000),
+      guidedAttemptFor(2, "B", 2, 900, 4000)
+    ];
+
+    expect(getGuidedStringFocus({ attempts, availablePitchClasses: [0, 2, 7, 9, 4] })).toMatchObject({
+      stringName: "B",
+      cleanPasses: 1
+    });
+  });
+
+  it("explains the string lane once guided-string work is eligible", () => {
+    const mastery = createInitialMasteryState();
+    [0, 2, 7].forEach((pitchClass) => {
+      mastery.byPitchClass[String(pitchClass)].attempts = 1;
+      mastery.byPitchClass[String(pitchClass)].score = 60;
+    });
+
+    const rationale = getNextWorkoutRationale({
+      attempts: [],
+      currentLevel: 1,
+      mastery,
+      nowMs: 5000
+    });
+
+    expect(rationale.headline).toBe("String lane: B string");
+    expect(rationale.detail).toContain("pitch-only");
   });
 
   it("next workout focus names the active set and weakest review notes", () => {

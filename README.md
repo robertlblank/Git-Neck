@@ -37,6 +37,7 @@ prompt -> app listens to guitar -> detects pitch class -> score -> feedback -> u
 - Pure training diagnosis module for skill states, repeated confusions, slow recall, retention review, and practice prescriptions
 - Daily Workout uses training diagnosis to prioritize weak accuracy, slow recall, repeated confusions, and retention review inside the current focus set
 - Daily Workout can lightly introduce guided-string prompts after the first natural-note focus group is ready
+- Guided-string Daily Workout prompts use a single-string recall lane: one focus string until 3 clean guided passes, then the next string
 - Local JSON persistence through Electron IPC
 - Practice, Progress, and Settings / Debug areas
 - Debug-only simulated note input
@@ -111,7 +112,7 @@ Paused time does not count toward the prompt response timer or active session ti
 - Loud rooms, chords, low input gain, attack noise, or sustained overtones may still confuse detection.
 - Normal microphone input validates pitch, not the physical fret or string.
 - Guided-string prompts say where to play, but the mic cannot prove the string/fret by itself.
-- Guided-string practice is intentionally light until it proves useful in real sessions.
+- Guided-string practice is intentionally light and string-lane based until it proves useful in real sessions.
 - Detailed score/result data is intentionally kept out of the Practice view and shown in Progress/history instead.
 - Practice should not require clicking before every note; the mic restarts automatically between prompts.
 - Tiger Mode is default-on; turn it off in Settings only if you intentionally want softer practice behavior.
@@ -127,8 +128,9 @@ Paused time does not count toward the prompt response timer or active session ti
 ## Verification Status
 
 - `npm install`: passed.
-- `npm test`: passed, 66 tests.
+- `npm test`: passed, 70 tests.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
 - `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: launched the Electron dev app on `http://localhost:5174/` because `5173` was occupied.

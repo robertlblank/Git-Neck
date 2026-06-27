@@ -516,3 +516,41 @@ Coverage added:
 Known limitation:
 
 - The mic still verifies pitch only. Guided-string prompts depend on Robert following the prompt honestly.
+
+## Latest Verification After Single-String Recall Lane
+
+Run from:
+
+```text
+/Users/robertblank/Guitar Gear Codex/git-neck
+```
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run dev
+```
+
+Result:
+
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- `npm test`: passed, 8 files / 70 tests.
+- `npm run build`: passed.
+- `npm run test:e2e`: passed full Electron workflow test.
+- `npm run dev`: built and launched the Electron dev app. Renderer used `http://localhost:5174/` because `5173` was occupied. Dev process was stopped after verification with `pkill -f electron-vite` because the command wrapper could not deliver Ctrl-C to the closed stdin session.
+
+Coverage added:
+
+- Daily guided-string prompts use one focus string instead of randomly jumping strings.
+- The first single-string recall focus is the B string.
+- A focus string advances after 3 clean guided-string passes.
+- Wrong and too-slow guided-string attempts do not count as clean string-lane progress.
+- Progress rationale can explain the active string lane and states that mic scoring is still pitch-only.
+
+Known limitation:
+
+- The mic still verifies pitch only. Guided-string prompts constrain the intended practice string, not the detected physical string.

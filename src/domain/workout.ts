@@ -1,11 +1,13 @@
 import { getCurrentLevel } from "./curriculum";
-import { createDrillPrompt } from "./drills";
+import { createDrillPrompt, formatStringName } from "./drills";
 import { getWeakestPitchClasses } from "./mastery";
 import { PITCH_CLASSES } from "./notes";
 import { assessPitchClassSkill, type TrainingSkillAssessment } from "./training";
 import type { Attempt, DrillPrompt, GuitarString, MasteryState, PitchMastery } from "./types";
 
 const GUIDED_STRINGS: GuitarString[] = ["lowE", "A", "D", "G", "B", "highE"];
+const SINGLE_STRING_FOCUS_ORDER: GuitarString[] = ["B", "G", "D", "A", "highE", "lowE"];
+const SINGLE_STRING_CLEAN_PASS_TARGET = 3;
 const FOCUS_GROUP_READY_SCORE = 55;
 
 export function selectNextPrompt(params: {
@@ -62,7 +64,15 @@ export function selectNextPrompt(params: {
     levelDrillTypes: level.drillTypes
   });
   const type = pick(drillTypes, rng);
-  const targetString = type === "guided_string_note" ? pick(GUIDED_STRINGS, rng) : undefined;
+  const targetString =
+    type === "guided_string_note"
+      ? getTargetStringForPrompt({
+          attempts: params.attempts ?? [],
+          availablePitchClasses: dailyPitchClasses,
+          mode: params.mode,
+          rng
+        })
+      : undefined;
 
   return createDrillPrompt({
     id: `prompt-${params.nowMs}`,
@@ -87,11 +97,7 @@ export function getDrillTypesForPrompt(params: {
   mode: "daily" | "free" | "test";
   plan: WorkoutPlan;
 }): DrillPrompt["type"][] {
-  if (
-    params.mode === "daily" &&
-    params.currentLevel === 1 &&
-    params.plan.reviewPitchClasses.length > 0
-  ) {
+  if (params.mode === "daily" && isGuidedStringLaneReady(params.currentLevel, params.plan)) {
     return ["note", "note", "note", "guided_string_note"];
   }
 
@@ -108,6 +114,12 @@ export type TrainingSelectionPlan = {
 export type WorkoutRationale = {
   headline: string;
   detail: string;
+};
+
+export type GuidedStringFocus = {
+  stringName: GuitarString;
+  cleanPasses: number;
+  targetCleanPasses: number;
 };
 
 export function getWorkoutPlan(mastery: MasteryState, currentLevel: number): WorkoutPlan {
@@ -192,6 +204,18 @@ export function getNextWorkoutRationale(params: {
     };
   }
 
+  if (isGuidedStringLaneReady(params.currentLevel, plan)) {
+    const focus = getGuidedStringFocus({
+      attempts: params.attempts,
+      availablePitchClasses: plan.availablePitchClasses
+    });
+
+    return {
+      headline: `String lane: ${formatStringName(focus.stringName)} string`,
+      detail: `Occasional guided prompts will stay on this string until ${focus.targetCleanPasses} clean passes. Mic scoring is still pitch-only.`
+    };
+  }
+
   const active = plan.activePitchClasses.map((pitchClass) => PITCH_CLASSES[pitchClass].displayName).join(", ");
   return {
     headline: `Current set: ${active}`,
@@ -220,6 +244,59 @@ export function getTrainingSelectionPlan(params: {
   };
 }
 
+export function getGuidedStringFocus(params: {
+  attempts: Attempt[];
+  availablePitchClasses: number[];
+}): GuidedStringFocus {
+  const focusCounts = SINGLE_STRING_FOCUS_ORDER.map((stringName) => ({
+    stringName,
+    cleanPasses: getGuidedStringCleanPasses({
+      attempts: params.attempts,
+      availablePitchClasses: params.availablePitchClasses,
+      stringName
+    })
+  }));
+  const incompleteFocus = focusCounts.find((focus) => focus.cleanPasses < SINGLE_STRING_CLEAN_PASS_TARGET);
+  const focus =
+    incompleteFocus ??
+    focusCounts.slice().sort((first, second) => first.cleanPasses - second.cleanPasses)[0] ??
+    focusCounts[0];
+
+  return {
+    ...focus,
+    targetCleanPasses: SINGLE_STRING_CLEAN_PASS_TARGET
+  };
+}
+
+function getTargetStringForPrompt(params: {
+  attempts: Attempt[];
+  availablePitchClasses: number[];
+  mode: "daily" | "free" | "test";
+  rng: () => number;
+}): GuitarString {
+  if (params.mode !== "daily") {
+    return pick(GUIDED_STRINGS, params.rng);
+  }
+
+  return getGuidedStringFocus({
+    attempts: params.attempts,
+    availablePitchClasses: params.availablePitchClasses
+  }).stringName;
+}
+
+function getGuidedStringCleanPasses(params: {
+  attempts: Attempt[];
+  availablePitchClasses: number[];
+  stringName: GuitarString;
+}): number {
+  return params.attempts.filter(
+    (attempt) =>
+      attempt.targetString === params.stringName &&
+      attempt.result === "pass" &&
+      params.availablePitchClasses.includes(attempt.targetPitchClass)
+  ).length;
+}
+
 function pick<T>(items: T[], rng: () => number): T {
   return items[Math.floor(rng() * items.length)] ?? items[0];
 }
@@ -246,6 +323,10 @@ function formatAssessmentLabels(assessments: TrainingSkillAssessment[]): string 
 
 function isFocusGroupReady(group: number[], mastery: MasteryState): boolean {
   return group.every((pitchClass) => isPitchReady(mastery.byPitchClass[String(pitchClass)]));
+}
+
+function isGuidedStringLaneReady(currentLevel: number, plan: WorkoutPlan): boolean {
+  return currentLevel === 1 && plan.reviewPitchClasses.length > 0;
 }
 
 function isPitchReady(mastery: PitchMastery | undefined): boolean {
